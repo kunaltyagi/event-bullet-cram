@@ -19,7 +19,7 @@
 )))
 
 ;; @TODO: add event in the on-event after checking for a new object event
-(defun add-event (event object-event) (mp:with-lock (*write-flag*) (funcall (first *object-event-accessor-list*))))
+(defmethod add-event (event object-event) (mp:with-lock (*write-flag*) (funcall (first *object-event-accessor-list*))))
 
-(defun list-all-events (event object-event) (mp:with-lock (*write-flag*) (funcall (second *object-event-accessor-list*))))
+(defmethod list-all-events (event object-event) (mp:with-lock (*write-flag*) (funcall (second *object-event-accessor-list*))))
 

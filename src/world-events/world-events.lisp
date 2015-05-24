@@ -15,7 +15,7 @@
    (topic
     :initarg
     :event-platform
-    :initform "/event_bullet_world/debug"
+    :initform "debug" ;; node-name prefixed autoamtically by ROS, if not, change it to/event_bullet_world/debug
     :accessor event-platform
     :documentation "In case of messages, the topic to publish on, etc.")
    (ros-binding
@@ -59,23 +59,25 @@
     (4 t); set parameter true here
 ))
 
-;; (defun -> default input to class world-event as the :raise-event-on-true fn
+(defmethod raise-event-as-fast-as-possible ((event world-event)) t)
+;; (defun velocity ((event world-event))
+;; something using prolog queries just like in cram-projection-demos/src/utilities/objects.lisp
 
 ;; @TODO: remove race condition using write-flag, (is it done?)
 (defparameter *world-event-accessor-list*
   (let ((world-event-list ()) (*write-flag* (mp:make-lock)))
     (list
-      #'(lambda (event world-event)
+      #'(lambda ((event world-event))
           (append list(event) world-event-list)
         ) ; @Gaya: is there need to make it better? (using cons), also, will deletion of event (by the user) also result in deletion of event from here??
-      #'(lambda (event world-event) (remove-if event world-event-list #'eq-world-event))
+      #'(lambda ((event world-event)) (remove-if event world-event-list #'eq-world-event))
       #'(lambda () (copy-list world-event-list)) ; to prevent editing by anyone else
 )))
 
-(defun add-event (event world-event) (mp:with-lock (*write-flag*) (funcall (first *world-event-accessor-list*))))
+(defmethod add-event ((event world-event)) (mp:with-lock (*write-flag*) (funcall (first *world-event-accessor-list*))))
 
 ;; timestamp can also be used to compare, imho, timestamp is better compared to name
-(defun remove-events-by-name (event world-event) (mp:with-lock (*write-flag*) (funcall (second *world-event-accessor-list*)))) ; notice plural form of events used, also, removal is by comparing the name, nothing else
+(defmethod remove-events-by-name ((event world-event)) (mp:with-lock (*write-flag*) (funcall (second *world-event-accessor-list*)))) ; notice plural form of events used, also, removal is by comparing the name, nothing else
 
-(defun list-all-events (event world-event) (mp:with-lock (*write-flag*) (funcall (third *world-event-accessor-list*))))
+(defmethod list-all-events ((event world-event)) (mp:with-lock (*write-flag*) (funcall (third *world-event-accessor-list*))))
 
