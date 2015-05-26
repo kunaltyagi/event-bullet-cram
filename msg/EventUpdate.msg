@@ -3,6 +3,8 @@
 # event if it occured)
 std_msgs/Header header
 
+# event name
+string name
 # event status
 int32 status
 
