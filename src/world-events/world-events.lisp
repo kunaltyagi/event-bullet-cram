@@ -12,18 +12,12 @@
     ;:initform (error "Supply a function to evaluate which on true would raise an event")
     :accessor raise-event-on-true
     :documentation "Function which on evaluating to true results in raising of the required event")
-   (topic
-    :initarg
-    :event-platform
-    :initform "debug" ;; node-name prefixed autoamtically by ROS, if not, change it to/event_bullet_world/debug
-    :accessor event-platform
-    :documentation "In case of messages, the topic to publish on, etc.")
    (ros-binding
     :initarg
     :response-type
     :initform 0 ;; 1 for message response on topic, 2 for service, etc.
     :accessor response-type
-    :documentation "ROS binding to use for raising the event, see the error message on setting response-type to 5"))
+    :documentation "ROS binding to use for raising the event, see the error message on setting response-type to 5")
    (occured-at
     :initarg
     :occurance-stack
@@ -34,8 +28,7 @@
     :initarg
     :message
     :accessor message
-    :documentation "Stores the latest message to be published as per the class details"
-   ))
+    :documentation "Stores the latest message to be published as per the class details")))
 
 (defmethod initialize-instance :after ((event world-event) &key ((:debug debug-mode) 0 debug-mode-supplied-p))
   (case (response-type event)

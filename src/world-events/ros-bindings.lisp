@@ -15,7 +15,14 @@
 
 ;; @TODO: save details of msg, and add the created Event to the list *world-event-accessor-list*
 (defun add-event-cb (msg) "Callback for new event values" (setf (value *add-event-msg*) msg))
+;; (with-fields (event_name number_of_constraints constraints ros_binding_type) msg
+;;     (make-instance 'world-event
+;;                    :event-name event_name
+;;                    :response-type ros_binding_type
+;;                    :raise-event-on-true #'(lambda (constraints) (t))
+;;     ))
 
+;;@TODO: add time-stamp here
 (defun raise-event-pb (msg) "Publishes already prepared messages"
   (publish *raise-event-pub* msg))
 
@@ -32,4 +39,7 @@
   (make-response "event_bullet_world/EventStatus"
                  :header (make-msg "std_msgs/Header"
                                    :stamp 2342)
-                 :status (raise-event-on-true event)))
+                 :status (raise-event-on-true event))) ; @gaya- or use the following
+;; (with-fields (status) (message event)
+;;   (make-response ...
+;;                :status status))
