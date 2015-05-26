@@ -29,35 +29,45 @@
     :occurance-stack
     :initform ()
     :read occurance-stack
-    :documentation "List of timestamps at which the event occured. Latest timestamp is appended to the beginning of the list"))
+    :documentation "List of timestamps at which the event occured. Latest timestamp is appended to the beginning of the list")
+   (ros-msg
+    :initarg
+    :message
+    :accessor message
+    :documentation "Stores the latest message to be published as per the class details"
+   ))
 
 (defmethod initialize-instance :after ((event world-event) &key ((:debug debug-mode) 0 debug-mode-supplied-p))
   (case (response-type event)
-    (0 (format t "No ROS bindings provided, all clear: ~a event~%" (event-name event))
+    (0 (format t "No ROS bindings provided, all clear: ~a event~%" (event-name event)))
     ;; I don't know if it is possible to use certain ros commands outside the `with-ros-node`
     ;; So, left the implementation here
     ;; Also, see the proposed message/service/action for raising event, in case of parameter, just set the
     ;; value to 1 (not true, true plays havoc in case it is by mistake read into a double variable, no problems
     ;; with 1 in reading its value to a boolean, integer or double)
-    (1 ros-info WORLD-EVENT-CLASS "Message chosen for communication") ; prepare the required message
-    (2 ros-info WORLD-EVENT-CLASS "Service chosen for communication") ; prepare the required service
-    (3 ros-info WORLD-EVENT-CLASS "Action chosen for communciation")  ; prepare the required action
-    (4 ros-info WORLD-EVENT-CLASS "Parameter chosen for communication") ; set the parameter to 0, so parameter server has the required param
-    (otherwise error("Wrong :response-type provided. ROS provides only 4 communication protocols: \n1. Messages\n2. Services\n3. Actions\n4. Parameters\nPlease choose the correct one"))))
+    (1 (ros-info WORLD-EVENT-CLASS "Message chosen for communication"))
+    (2 (ros-info WORLD-EVENT-CLASS "Polling only support ready for ROS Service"))
+    (3 progn(
+             (ros-error WORLD-EVENT-CLASS "No support for ROS Action, fallback to messages")
+             (setf (slot-value event 'response-type 1))))
+    (4 progn(
+             (ros-info WORLD-EVENT-CLASS "Parameter chosen for communication")
+             (set-param (event-name event) 0))) ; set the parameter to 0, so parameter server has the required param
+    (otherwise error("Wrong :response-type provided. ROS provides only 4 communication protocols: \n1. Messages\n2. Services\n3. Actions\n4. Parameters\nPlease choose the correct one. No fallback"))))
 
 (defmethod eq-world-event ((lhs world-event) (rhs world-event)) (string= (event-name lhs) (event-name rhs)))
 
 (defmethod on-event cat-counter ((event world-event)) ;; @gaya-: this is correct usage, right??
-  ;; @gaya- i think this usage is correct (line 52)
+  ;; @gaya- i think this usage is correct (line 62)
   (setf (slot-value event 'occured-at (append (list (cut:current-timestamp)) (occurance-stack event))))
   ;; or should event-timestamp be used for this purpose?
   (case (response-type event)
-    ;; @TODO: big one
-    (0 t); do noting, print??
-    (1 t); publish here
-    (2 t); call server here
-    (3 t); call server here
-    (4 t); set parameter true here
+    (0 (format t "~a Event~% occured" (event-name event))
+    (1 (raise-event-pb (message event))) ; publishing here
+    (2 t); do nothing here, it is a polling only feature
+    (3 (ros-error WORLD-EVENT-CLASS "Actions not supported"))
+    (4 (set-param (event-name event) 1)) ; set parameter true here. Is there a possiblity of informing which constraint was violated?
+    (otherwise error())
 ))
 
 (defmethod raise-event-as-fast-as-possible ((event world-event)) t)

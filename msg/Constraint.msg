@@ -21,6 +21,8 @@ geometry_msgs/Vector3 max
 
 # Event raised inside/outside the range
 int32 is_interior
+# Is it a direction constraint or a magnitude constraint?
+int32 is_magnitude_constraint
 # Is the data for source relative to the target_object?
 # Doesn't matter if the target_object is empty
 int32 is_relative
