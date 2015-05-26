@@ -6,9 +6,8 @@ find_package(catkin REQUIRED COMPONENTS
   cram_language
 )
 
-add_message_files(DIRECTORY msg    FILES EventMessage.msg Constraint.msg)
-add_service_files(DIRECTORY srv    FILES EventService.srv)
-add_action_files (DIRECTORY action FILES EventAction.action)
+add_message_files(DIRECTORY msg    FILES AddEvent.msg Constraint.msg)
+add_service_files(DIRECTORY srv    FILES EventStatus.srv)
 
 generate_messages(DEPENDENCIES std_msgs geometry_msgs actionlib_msgs)
 

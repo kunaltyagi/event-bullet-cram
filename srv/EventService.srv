@@ -1,5 +1,0 @@
-# Service with empty response for CRAM Event raising
-Header header
-string name
-int32 value
----
