@@ -1,13 +1,15 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(event_bullet_world)
 find_package(catkin REQUIRED COMPONENTS
+  message_generation std_msgs geometry_msgs
+  sensor_msgs actionlib actionlib_msgs
   cram_language
 )
 
-add_message_files(DIRECTORY msg    FILES Event_CRAM.msg)
-add_service_files(DIRECTORY srv    FILES Event_CRAM.msg)
-add_action_files (DIRECTORY action FILES Event_CRAM.msg)
+add_message_files(DIRECTORY msg    FILES Event_msg.msg Constraint.msg)
+add_service_files(DIRECTORY srv    FILES Event_srv.srv)
+add_action_files (DIRECTORY action FILES Event_action.action)
 
-generate_messages(DEPENDENCIES actionlib_msgs std_msgs)
+generate_messages(DEPENDENCIES std_msgs geometry_msgs actionlib_msgs)
 
 catkin_package(CATKIN_DEPENDS actionlib actionlib_msgs roslisp std_msgs message_runtime)
