@@ -7,7 +7,7 @@
 ;; fact that object-events have to call on-event function themselves (somehow) while for world-event objects,
 ;; the on-event function is called after checking at a specific loop rate
 
-;(defmethod on-event ((event object-event)) already exists for world-event, so inherited (right??)
+;; @gaya-: (defmethod on-event ((event object-event)) already exists for world-event, so inherited (right??)
 
 ;; Objects will just have to call: (on-event obj)
 

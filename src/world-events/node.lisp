@@ -7,6 +7,7 @@
   (with-ros-node(node-name: spin t)
     (ros-warn WORLD-EVENT-CLASS "Event raising node started")
     (loop-at-most-every loop-rate
+      ;; Create threads for each object? mskes sense if the number of objects becomes large
       (loop for event in *world-event-accessor-list* when (funcall (raise-event-on-true event))
         do (on-event event)))))
 

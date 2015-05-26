@@ -22,7 +22,7 @@
     :initarg
     :response-type
     :initform 0 ;; 1 for message response on topic, 2 for service, etc.
-    :accessor repsonse-type
+    :accessor response-type
     :documentation "ROS binding to use for raising the event, see the error message on setting response-type to 5"))
    (occured-at
     :initarg
@@ -47,7 +47,8 @@
 
 (defmethod eq-world-event ((lhs world-event) (rhs world-event)) (string= (event-name lhs) (event-name rhs)))
 
-(defmethod on-event cat-counter ((event world-event)) ;; @Gaya: this is correct usage, right??
+(defmethod on-event cat-counter ((event world-event)) ;; @gaya-: this is correct usage, right??
+  ;; @gaya- i think this usage is correct (line 52)
   (setf (slot-value event 'occured-at (append (list (cut:current-timestamp)) (occurance-stack event))))
   ;; or should event-timestamp be used for this purpose?
   (case (response-type event)
@@ -69,7 +70,7 @@
     (list
       #'(lambda ((event world-event))
           (append list(event) world-event-list)
-        ) ; @Gaya: is there need to make it better? (using cons), also, will deletion of event (by the user) also result in deletion of event from here??
+        ) ; @gaya-: is there need to make it better? (using cons), also, will deletion of event (by the user) also result in deletion of event from here??
       #'(lambda ((event world-event)) (remove-if event world-event-list #'eq-world-event))
       #'(lambda () (copy-list world-event-list)) ; to prevent editing by anyone else
 )))
