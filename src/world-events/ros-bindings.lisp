@@ -13,14 +13,26 @@
   (register-service "event_status" 'GetEventStatus)
 )
 
+(defun single-constraint-check (constraint-msg) "Returns a lambda function which checks for this constraint"
+  ;; @gaya-: I think, we can remove is_not_range and data field from the Constraint
+  ;; message.
+  (with-fields(target_object source_object constraint_type
+              is_relative is_magnitude_constraint is_interior is_not_range is_angluar
+              data min max) constraint-msg
+;; set lambda function here
+  )
+)
+
 ;; @TODO: save details of msg, and add the created Event to the list *world-event-accessor-list*
-(defun add-event-cb (msg) "Callback for new event values" (setf (value *add-event-msg*) msg))
-;; (with-fields (event_name number_of_constraints constraints ros_binding_type) msg
-;;     (make-instance 'world-event
-;;                    :event-name event_name
-;;                    :response-type ros_binding_type
-;;                    :raise-event-on-true #'(lambda (constraints) (t))
-;;     ))
+(defun add-event-cb (msg) "Callback for new event values"
+  (with-fields (event_name constraints ros_binding_type) msg
+    (add-event (make-instance 'world-event
+                              :event-name event_name
+                              :response-type ros_binding_type
+                              :message msg
+                              :raise-event-on-true #'(lambda (constraints) ; no need to use number_of_constraints
+                                                             (loop for item in constraints
+                                                             collect (single-constraint-check item)))))))
 
 ;;@TODO: add time-stamp here
 (defun raise-event-pb (msg) "Publishes already prepared messages"
