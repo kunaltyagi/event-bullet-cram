@@ -32,14 +32,14 @@
                 :header (make-msg "std_msgs/Header"
                                   :stamp 2342)
                 :name (event-name event)
-                :status (raise-event-on-true event)))
+                :has_occured (raise-event-on-true event)))
 
 ;; @TODO: add time-stamp here
 (def-service-callback GetEventStatus (name)
   (make-response "event_bullet_world/EventStatus"
                  :header (make-msg "std_msgs/Header"
                                    :stamp 2342)
-                 :status (raise-event-on-true event))) ; @gaya- or use the following
+                 :has_occured (raise-event-on-true event))) ; @gaya- or use the following
 ;; (with-fields (status) (message event)
 ;;   (make-response ...
 ;;                :status status))

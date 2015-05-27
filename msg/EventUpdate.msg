@@ -6,8 +6,11 @@ std_msgs/Header header
 # event name
 string name
 # event status
-int32 status
+int32 has_occured
 
-# @TODO
+int32 TRUE = 1
+int32 FALSE = 0
+
+# @TODOL bitfield maybe
 #int32 number_of_constraints
-#event_bullet_world/Constraint[] constraint_status
+#int32 has_occured
