@@ -9,8 +9,7 @@ string target_object
 string source_object
 int32 constraint_type
 
-# Constraint is a range or a single point
-int32 is_not_range
+# If constraint is not a range, then specify min and max as (desired value - delta) and (desired value + delta) respectively
 # Linear or angular?
 int32 is_angular
 # Data to be used if not_range is true
