@@ -34,7 +34,12 @@
     :initarg
     :message
     :accessor message
-    :documentation "Stores the latest message to be published as per the class details"
+    :documentation "Stores the latest message to be published as per the class details")
+   (constraints
+    :initarg
+    :constraint-list
+    :accessor constraint-list
+    :documentation "Stores the list of constraints, in (ready to make ros-msg) list format")
    ))
 
 (defmethod initialize-instance :after ((event world-event) &key ((:debug debug-mode) 0 debug-mode-supplied-p))
