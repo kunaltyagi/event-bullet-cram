@@ -15,7 +15,7 @@
 
 ;; @TODO: save details of msg, and add the created Event to the list *world-event-accessor-list*
 (defun add-event-cb (msg) "Callback for new event values" (setf (value *add-event-msg*) msg))
-;; @TODO: defun position (obj_name), velocity (obj_name), acceleration (obj_name)
+;; @TODO: defun position (obj_name), velocity (obj_name), acceleration (obj_name): from prolog? just a thought from projection_demos
 ;; if empty, take obj_name to be "world" instead
 
 ;; Slight renaming required. Target object means relative wrt the target object, not wrt the source object
