@@ -15,5 +15,6 @@
              (:module "world-event" :depends-on ("package")
                       :components
                       ((:file "world-events")
-                       (:file "node" :depends-on "world-events")))
+                       (:file "ros-bindings" :depends-on ("world-events"))
+                       (:file "node" :depends-on ("world-events" "ros-bindings")))
              (:file "object-event" :depends-on ("package" "world-event"))))))

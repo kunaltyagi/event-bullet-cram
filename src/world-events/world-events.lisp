@@ -24,6 +24,7 @@
     :initform ()
     :read occurance-stack
     :documentation "List of timestamps at which the event occured. Latest timestamp is appended to the beginning of the list")
+   ;; @TODO: do what ros-msg actually should do
    (ros-msg
     :initarg
     :message
@@ -51,7 +52,8 @@
              (setf (slot-value event 'response-type 1))))
     (4 progn(
              (ros-info WORLD-EVENT-CLASS "Parameter chosen for communication")
-             (set-param (event-name event) 0))) ; set the parameter to 0, so parameter server has the required param
+             (set-param (event-name event) 0)
+             (set-param (concantenate (event-name event) "/status") (message event)))) ; set the parameter to 0, so parameter server has the required param, as well as detailed status
     (otherwise error("Wrong :response-type provided. ROS provides only 4 communication protocols: \n1. Messages\n2. Services\n3. Actions\n4. Parameters\nPlease choose the correct one. No fallback"))))
 
 (defmethod eq-world-event ((lhs world-event) (rhs world-event)) (string= (event-name lhs) (event-name rhs)))
@@ -62,7 +64,7 @@
   ;; or should event-timestamp be used for this purpose?
   (case (response-type event)
     (0 (format t "~a Event~% occured" (event-name event))
-    (1 (raise-event-pb (message event))) ; publishing here
+    (1 (raise-event-pb (prepare-msg (event)))) ; publishing here
     (2 t); do nothing here, it is a polling only feature
     (3 (ros-error WORLD-EVENT-CLASS "Actions not supported"))
     (4 (set-param (event-name event) 1)) ; set parameter true here. Is there a possiblity of informing which constraint was violated?

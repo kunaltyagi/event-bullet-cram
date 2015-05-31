@@ -34,3 +34,7 @@ int32 ACCELERATION = 2
 # is_not_range, is_angular, is_interior, is_relative values
 int32 TRUE = 1
 int32 FALSE = 0
+
+# some difficult to express range limits
+float64 DOUBLE_INF = 1.7976931348623157e+308
+int32 INT_INF = 2147483647

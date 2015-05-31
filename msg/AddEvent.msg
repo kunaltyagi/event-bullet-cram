@@ -7,8 +7,10 @@ string event_name
 int32 ros_binding_type
 
 # constraints to be applied under the given name
+int32 is_custom
 int32 number_of_constraints
 event_bullet_world/Constraint[] constraints
+string custom_function
 
 # ros_binding_type values
 int32 NONE      = 0

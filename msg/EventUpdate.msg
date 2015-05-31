@@ -7,10 +7,10 @@ std_msgs/Header header
 string name
 # event status
 int32 has_occured
+# detailed status
+int32 number_of_constraints
+int32[] status
 
 int32 TRUE = 1
 int32 FALSE = 0
 
-# @TODOL bitfield maybe
-#int32 number_of_constraints
-#int32 has_occured
