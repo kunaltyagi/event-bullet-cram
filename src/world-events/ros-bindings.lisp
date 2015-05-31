@@ -33,6 +33,30 @@
                               :raise-event-on-true #'(lambda (constraints) ; no need to use number_of_constraints
                                                              (loop for item in constraints
                                                              collect (single-constraint-check item)))))))
+;; @TODO: defun position (obj_name), velocity (obj_name), acceleration (obj_name): from prolog? just a thought from projection_demos
+;; if empty, take obj_name to be "world" instead
+
+;; Slight renaming required. Target object means relative wrt the target object, not wrt the source object
+
+;; @TODO: remove is_range, not using it
+;; @TODO: use is_magnitude, overload < and > for use
+;; (let (value (get-current-value msg))
+;;   (if is_interior (and (> min value) (< max value)) (or (< min value) (> max value))))
+
+;; (defun get-current-value(msg) "Returns the required relatice/absolute value based on target and current objects as well as the constraint_type"
+;;   (cond ((= constraint_type POSITION)
+;;           (if is_relative (- (position target_object) (position source_object)) (position source_object))
+;;         )
+;;         ((= constraint_type VELOCITY)
+;;           (if is_relative (- (velocity target_object) (velocity source_object)) (velocity source_object))
+;;         )
+;;         ((= constraint_type ACCELERATION)
+;;           (if is_relative (- (acceleration target_object) (acceleration source_object)) (acceleration source_object))
+;;         )
+;;         (t 
+;;           (ros-warn EVENT_BULLET_WORLD "Wrong constraint_type provided, falling back to position")
+;;           (if is_relative (- (position target_object) (position source_object)) (position source_object)) ;; or call the fn again with constraint_type as POSITION? which is better?
+;;         ))
 
 ;;@TODO: add time-stamp here
 (defun raise-event-pb (msg) "Publishes already prepared messages"
