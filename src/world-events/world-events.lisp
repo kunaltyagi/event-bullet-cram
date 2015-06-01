@@ -58,8 +58,9 @@
 
 (defmethod eq-world-event ((lhs world-event) (rhs world-event)) (string= (event-name lhs) (event-name rhs)))
 
-(defmethod on-event cat-counter ((event world-event)) ;; @gaya-: this is correct usage, right??
-  ;; @gaya- i think this usage is correct (line 62)
+;; @gaya- did you mean this instead of
+;; (defmethod on-event :after ((event world-event))
+(defmethod on-event cat-counter ((event world-event))
   (setf (slot-value event 'occured-at (append (list (cut:current-timestamp)) (occurance-stack event))))
   ;; or should event-timestamp be used for this purpose?
   (case (response-type event)
