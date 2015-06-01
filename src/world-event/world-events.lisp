@@ -40,17 +40,14 @@
 (defmethod initialize-instance :after ((event world-event) &key ((:debug debug-mode) 0 debug-mode-supplied-p))
   (case (response-type event)
     (0 (format t "No ROS bindings provided, all clear: ~a event~%" (event-name event)))
-    ;; I don't know if it is possible to use certain ros commands outside the `with-ros-node`
-    ;; So, left the implementation here
-    ;; Also, see the proposed message/service/action for raising event, in case of parameter, just set the
-    ;; value to 1 (not true, true plays havoc in case it is by mistake read into a double variable, no problems
-    ;; with 1 in reading its value to a boolean, integer or double)
     (1 (ros-info WORLD-EVENT-CLASS "Message chosen for communication"))
     (2 (ros-info WORLD-EVENT-CLASS "Polling only support ready for ROS Service"))
     (3 progn(
              (ros-error WORLD-EVENT-CLASS "No support for ROS Action, fallback to messages")
              (setf (slot-value event 'response-type 1))))
     (4 progn(
+;; rosparam set to 1 and 0 not true or false due to problems while reading the param
+;; into double or int variable in python and c++
              (ros-info WORLD-EVENT-CLASS "Parameter chosen for communication")
              (set-param (event-name event) 0)
              (set-param (concantenate (event-name event) "/status") (message event)))) ; set the parameter to 0, so parameter server has the required param, as well as detailed status

@@ -1,6 +1,6 @@
 (in-package :cl-user)
 
-(design-props:def-design-package event-bullet-world
+(defpackage event-bullet-world
   (:nicknames #:events)
   (:use #:cram-roslisp-common
         #:common-lisp
@@ -8,6 +8,6 @@
         #:cram-plan-knowledge
         #:cram-reasoning
         #:roslisp)
-  (:shadowing-import-from #:cpl #:name)
+  (:shadowing-import-from #:cpl #:name #:fail)
   (:shadowing-import-from #:btr object pose object-pose))
 
