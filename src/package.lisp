@@ -9,6 +9,6 @@
         #:cram-reasoning
         #:roslisp
         "CL" "SB-THREAD" "SB-EXT")
-  (:shadowing-import-from #:cpl #:name #:fail)
+  (:shadowing-import-from #:cpl #:name #:fail #:wait-for)
   (:shadowing-import-from #:btr object pose object-pose))
 
