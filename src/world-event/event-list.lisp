@@ -24,14 +24,14 @@
    (element-list
     :initarg
     :element-list
-    :reader element-list
+    :initform ()
+    :reader element-list ;; @TODO
     :writer (with-mutex (read-write-mutex) (setf element-list))
     :documentation "read and write accessors to ensure thread-safety")
 ))
 
 (defmethod initialize-instance :after ((new-list event-list) &key)
-  (setq new-list 'read-write-mutex (make-mutex :name (concatenate 'string name "-mutex")))
-  (incf (reader-number new-list))
+  (setf (read-write-mutex new-list) (make-mutex :name (concatenate 'string name "-mutex")))
 )
 
 (defmethod get-element-copy ((new-list event-list))

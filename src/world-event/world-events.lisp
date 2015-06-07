@@ -54,7 +54,7 @@ e  ))
     (2 (ros-info WORLD-EVENT-CLASS "Polling only support ready for ROS Service"))
     (3 progn(
              (ros-error WORLD-EVENT-CLASS "No support for ROS Action, fallback to messages")
-             (setf (slot-value event 'response-type 1))))
+             (setf (response-type event) 1)))
     (4 progn(
 ;; rosparam set to 1 and 0 not true or false due to problems while reading the param
 ;; into double or int variable in python and c++
@@ -92,7 +92,8 @@ e  ))
 
 ;; convert to class
 (defparameter *world-event-accessor-list*
-  (let ((world-event-list ()) (remove-world-event-list ())
+  (let ((world-event-list (make-instance 'event-list :list-name "active-list"))
+        (remove-world-event-list (make-instance 'event-list :list-name "removal-list"))
     (list
       #'(lambda ((event world-event)) (append list(event) world-event-list)
         ) ; @gaya-: is there need to make it better? (using cons), also, will deletion of event (by the user) also result in deletion of event from here?? (deep copy issue in lists)
