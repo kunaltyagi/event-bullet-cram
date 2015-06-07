@@ -45,7 +45,7 @@
     :constraint-list
     :accessor constraint-list
     :documentation "Stores the list of constraints, in (ready to make ros-msg) list format")
-   ))
+e  ))
 
 (defmethod initialize-instance :after ((event world-event) &key ((:debug debug-mode) 0 debug-mode-supplied-p))
   (case (response-type event)
@@ -85,14 +85,14 @@
 ;; (defun velocity ((event world-event))
 ;; something using prolog queries just like in cram-projection-demos/src/utilities/objects.lisp
 
-;; no problem with the apparent race condition in remove-element list, because its
-;; size would mostly remain small. Can use a second mutex for them
+(defparameter world-event-list-modified nil)
+(defparameter remove-element-list-modified nil)  ;; to reduce calls on list-all-events
+(defparameter *read-write-mutex* (make-mutex :name "world-event-list-mutex"))
+(defparameter *delete-mutex* (make-mutex :name "remove-world-event-list-mutex")))
+
+;; convert to class
 (defparameter *world-event-accessor-list*
   (let ((world-event-list ()) (remove-world-event-list ())
-        (world-event-list-modified nil) (remove-element-list-modified nil)  ;; to reduce calls on list-all-events
-        (*read-write-mutex* (make-mutex :name "world-event-list-mutex"))
-        (*delete-mutex* (make-mutex :name "remove-world-event-list-mutex")))
-        ;; (*modified-* (make-mutex :name "modified-mutex"))
     (list
       #'(lambda ((event world-event)) (append list(event) world-event-list)
         ) ; @gaya-: is there need to make it better? (using cons), also, will deletion of event (by the user) also result in deletion of event from here?? (deep copy issue in lists)

@@ -19,15 +19,21 @@
 
 ; @TODO: make another var in the *world-accessor-list* to denote which all elements
 ; have a thread associated with them. Those which don't have a thread, get one.
-(loop for event in *world-event-accessor-list*
-  (lambda (event)
-    (make-thread
-      (defvar *remove-element-list* (list-all-events-to-remove))
-      (loop-at-most-every loop-rate
-        (if (= remove-element-list-modified t) (proc (setq *remove-element-list* (list-all-events-to-remove)) (setq remove-element-list-modified nil)))
-        (while (numberp (position event *
-          (if (raise-event-on-true event) (on-event event) (t))
-        ) 
+(defvar event-list (list-all-events))
+(defvar remove-element-list (list-all-events-to-remove))
+(loop for event in (if (= world-event-list-modified t) (setq event-list (list-all-events)) (event-list)
+  (if event in (if (= remove-element-list-modified t) (setq remove-element-list (list-all-events-to-remove)) (remove-element-list)))
+  (setq event 'removal-requested t)
+  (if (= (run-status event) nil)
+    (lambda (event)
+      (if (= (removal-requested event) nil)
+        (if (= (run-status event) nil)
+         (make-thread
+          (loop-at-most-every loop-rate
+            (if (= remove-element-list-modified t) (proc (setq *remove-element-list* (list-all-events-to-remove)) (setq remove-element-list-modified nil)))
+            (while (numberp (position event *
+              (if (raise-event-on-true event) (on-event event) (t))
+        )
       )
     )
   )
