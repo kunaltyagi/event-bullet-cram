@@ -8,3 +8,8 @@ Each event is differentiated by its name, its creation time. Right now, creation
 
 ## Description
 Event is described as a named violation of a list of constraints. A constraint is a simple check on relative or absolute value (magnitude or direction (or both?? haven't given both much thought)) of position, velocity or accelration (linear or angular) of a source (wrt a target object) with repsect to a range.
+
+## Usage
+* **$** roslisp_repl
+* **CL_USER>** ```(ros-load:load-system "event_bullet_world" "event-bullet-world")```
+* **EVENTS>** ```(check-map)```
