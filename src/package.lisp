@@ -10,5 +10,7 @@
         #:roslisp
         "CL" "SB-THREAD" "SB-EXT")
   (:shadowing-import-from #:cpl #:name #:fail #:wait-for)
-  (:shadowing-import-from #:btr object pose object-pose))
+  (:shadowing-import-from #:btr object pose object-pose)
+  (:export check-map)
+  )
 
