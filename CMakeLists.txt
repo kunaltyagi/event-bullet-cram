@@ -6,7 +6,7 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 add_message_files(DIRECTORY msg    FILES
-    AddEvent.msg Constraint.msg EventUpdate.msg)
+    AddPhysicsEvent.msg PhysicsConstraint.msg EventUpdate.msg)
 add_service_files(DIRECTORY srv    FILES EventStatus.srv)
 
 generate_messages(DEPENDENCIES std_msgs geometry_msgs)

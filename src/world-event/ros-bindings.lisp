@@ -3,26 +3,22 @@
 (defparameter ros-binding-base-name "event_bullet_world")
 (defun get-ros-name (inp) (concatenate 'string ros-binding-base-name "/" inp))
 
-;(defparameter *add-event-msg* (make-fluent :name :new-event) "New event to be checked for")
-;(defparameter *raise-event-msg* (make-fluent :name :new-event) "New event raised")
+; (defparameter *add-event-msg* (make-fluent :name :new-event) "New event to be checked for")
+; (defparameter *raise-event-msg* (make-fluent :name :new-event) "New event raised")
 
-(defparameter *raise-event-pub* nil) ;; Raised event published by this publisher
-(defparameter *add-event-sub* nil) ;; New events to be added read from here
+(defparameter *raise-event-pub* nil "Raised event published by this publisher")
+(defparameter *add-event-sub* nil "New events to be added read from here")
 
 (defun init-ros-elements ()
   "Subscribes to topics, binds call backs"
-  (ros-warn EVENT-BULLET-WORLD "1")
-;  (setf *raise-event-pub*
-;        (advertise (get-ros-name "new_event")
-;                            (get-ros-name "EventUpdate"))
+  (setf *raise-event-pub*
+        (advertise (get-ros-name "event_update")
+                            (get-ros-name "EventUpdate"))
 ;  (setf *add-event-sub*
-  (ros-warn EVENT-BULLET-WORLD "2")
-        (subscribe (get-ros-name "add_event")
-                          (get-ros-name "AddEvent")
-                          #'add-event-cb);)
-  (register-service "event_status" 'GetEventStatus)
-  (ros-warn EVENT-BULLET-WORLD "3")
-)
+        (subscribe (get-ros-name "physics/add_event")
+                          (get-ros-name "AddPhysicsEvent")
+                          #'add-physics-event-cb);)
+  (register-service "event_status" 'GetEventStatus)))
 
 ;; @brief Uses the current value (position, velocity or acceleration) of an object
 ;; with respect to "world" or the target_object depending on is_absolute flag, and
@@ -60,7 +56,7 @@
 ;;          (if is_relative (- (position target_object) (position source_object)) (position source_object)) ;; or call the fn again with constraint_type as POSITION? which is better?
 ;;)))
 
-(defun add-event-cb (msg) "Callback for new event values" t)
+(defun add-physics-event-cb (msg) "Callback for new event values" t)
 ;;  (with-fields (event_name constraints ros_binding_type is_custom) msg
 ;;    (add-event (make-instance 'world-event
 ;;                              :event-name event_name
@@ -78,22 +74,24 @@
 (defun raise-event-pb (msg) "Publishes already prepared messages"
   (publish *raise-event-pub* msg))
 
-;;(defmethod prepare-msg ((event world-event))
-;;  (make-message "event_bullet_world/EventUpdate"
-;;                :header (make-msg "std_msgs/Header"
-;;                                  :stamp (cut:current-timstamp))
-;;                :name (event-name event)
-;;                :number_of_constraints (length (constraints event))
-;;                :status (constraints event)
-;;                :has_occured (numberp (position t (message event)))))
+;(defmethod prepare-msg ((event world-event))
+;  (make-message "event_bullet_world/EventUpdate"
+;                :header (make-msg "std_msgs/Header"
+;                                  :stamp (ros-time))
+;                :name (event-name event)
+;                :number_of_constraints (length (constraints event))
+;                :status (constraints event)
+;                :has_occured (numberp (position t (message event)))))
 
-;;(def-service-callback GetEventStatus (name)
-;;  (make-response "event_bullet_world/EventStatus"
-;;                 :header (make-msg "std_msgs/Header"
-;;                                   :stamp (cut:current-timstamp))
-;;                 ;; @TODO find event using name then use it here as shown
-;;                 :name (event-name event) ;; more of confirmation, than requirement
-;;                 ;; :has_occured (raise-event-on-true event)
-;;                 :number_of_constraints (length (constraints event))
-;;                 :status (constraints event)
-;;                 :has_occured (numberp (position t (message event)))))
+(def-service-callback GetEventStatus (name)
+  "callback which receives service calls"
+  ; find event by name
+  (make-response "event_bullet_world/EventStatus"
+                 :header (make-msg "std_msgs/Header"
+                                   :stamp (ros-time))
+                 ;; @TODO find event using name then use it here as shown
+                 :name "trial";(event-name event) ;; more of confirmation, than requirement
+                 ;; :has_occured (raise-event-on-true event)
+                 :number_of_constraints 5;(length (constraints event))
+                 :status (constraints event)
+                 :has_occured (numberp (position t (message event)))))

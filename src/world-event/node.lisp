@@ -6,6 +6,6 @@
     (init-ros-elements)
     (advertise (get-ros-name "add_event") (get-ros-name "EventUpdate"))
     (ros-warn EVENT-BULLET-WORLD "Event raising node started")
-;    (loop-at-most-every 1
-      (ros-info EVENT-BULLET-WORLD "Looping")
-));)
+    (loop-at-most-every 1
+      ;(ros-info EVENT-BULLET-WORLD "Looping")
+)))
