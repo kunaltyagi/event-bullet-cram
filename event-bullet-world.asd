@@ -20,8 +20,8 @@
              (:module "world-event" :depends-on ("package")
                       :components
                       (
-                       (:file "physics-event")
-                       (:file "ros-bindings" :depends-on ("physics-event"))
+                       (:file "physics-event" :depends-on ("ros-bindings"))
+                       (:file "ros-bindings") ; :depends-on ("physics-event"))
                        (:file "node" :depends-on ("ros-bindings"))
                       ))
              ))))

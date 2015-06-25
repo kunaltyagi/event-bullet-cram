@@ -59,28 +59,29 @@
 ;; into double or int variable in python and c++
        (ros-info EVENT_BULLET_WORLD "Parameter chosen for communication")
        (set-param (event-name event) 0)
-       (set-param (concantenate (event-name event) "/status") (message event))) ; set the parameter to 0, so parameter server has the required param, as well as detailed status
+       (set-param (concantenate (event-name event) "/status") (message event)))  ; set the parameter to 0, so parameter server has the required param, as well as detailed status
     (otherwise (error "Wrong :response-type provided. ROS provides only 4 communication protocols: \n1. Messages\n2. Services\n3. Actions\n4. Parameters\nPlease choose the correct one. No fallback"))))
 
-;; @TODO: compile error
 (defmethod eq-physics-event ((lhs physics-event) (rhs physics-event))
   (string= (event-name lhs) (event-name rhs)))
 
 ;; @gaya- did you mean this instead of
-;; (defmethod on-event :after ((event physics-event))
-;(defmethod on-event cat-counter ((event physics-event))
-;  (setf (slot-value event 'occured-at (append (list (cut:current-timestamp)) (occurance-stack event))))
-;  ;; or should event-timestamp be used for this purpose?
-;  (case (response-type event)
-;    (0 (format t "~a Event~% occured" (event-name event))
-;    (1 (raise-event-pb (prepare-msg (event)))) ; publishing here
-;    (2 t); do nothing here, it is a polling only feature
-;    (3 (ros-error EVENT_BULLET_WORLD "Actions not supported"))
-;    (4 (set-param (event-name event) 1)) ; set parameter true here. Is there a possiblity of informing which constraint was violated?
-;    (otherwise error())
-;))
+(defmethod on-event :after ((event physics-event))
+  (setf (occured-at event) (append (list (ros-time)) (occurance-stack event)))
+  ;; or should event-timestamp be used for this purpose?
+  (case (response-type event)
+    (0 (format t "~a Event~% occured" (event-name event)))
+    (1 (raise-event-pb (prepare-msg (event))))  ; publishing here
+    (2 (ros-info EVENT_BULLET_WORLD "Event occured. Polling data updated")) ; do nothing here, it is a polling only feature
+    (3 (ros-error EVENT_BULLET_WORLD "Actions not supported"))
+    (4 (set-param (event-name event) 1)
+       (set-param (concantenate (event-name event) "/status") (message event)))
+    (otherwise (error "Wrong :response-type provided. ROS provides only 4 communication protocols. Choose one of them"))  ; strictly, not required.
+))
 
 (defmethod raise-event-as-fast-as-possible ((event physics-event)) t)
+
+(defun get-event-by-name (name) t)
 
 ;; (defun velocity ((event physics-event))
 ;; something using prolog queries just like in cram-projection-demos/src/utilities/objects.lisp

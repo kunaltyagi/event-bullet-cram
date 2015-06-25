@@ -26,21 +26,25 @@
 ;; constraint is violated or not
 ;; @param[in] msg ros-message of type Constraint.msg
 ;; @return (if (constraint violated) t nil)
-;;(defun single-constraint-check (constraint-msg) "Returns a lambda function which checks for this constraint"
-;;  (with-fields(target_object source_object constraint_type
-;;              is_relative is_magnitude_constraint is_interior is_angluar
-;;              data min max) constraint-msg
-;;    (setf target_object (if (string= target_object "") "world" target_object))
-;;    (let ((msg constraint-msg))
-;;      (#'lambda ()
-;;                (let ((value (get-current-value msg)))
-;;                  ;; @TODO: use is_magnitude, overload < and > for use
-;;                  (if is_interior (and (> min value) (< max value)) (or (< min value) (> max value)))))))
-;; @TODO: defun position (obj_name), velocity (obj_name), acceleration (obj_name): from prolog? just a thought from projection_demos
+(defun single-constraint-check (constraint-msg) "Returns a lambda function which checks for this constraint"
+  (with-fields(target_object source_object constraint_type
+              is_relative is_magnitude_constraint is_interior is_angluar
+              data min max) constraint-msg
+    (setf target_object (if (string= target_object "") "world" target_object))
+;    (let ((msg constraint-msg))
+;      (#'lambda ()
+;                (let ((value (get-current-value msg)))
+;                  ;; @TODO: use is_magnitude, overload < and > for use
+;                  ;(if is_interior (and (> min value) (< max value)) (or (< min value) (> max value)))
+;                  t
+;                  )))))
+))
+
+; @TODO: defun position (obj_name), velocity (obj_name), acceleration (obj_name): from prolog? just a thought from projection_demos
 
 ;; Slight renaming required. Target object means relative wrt the target object, not wrt the source object
 
-;;(defun get-current-value(msg) "Returns the required relative/absolute value based on target and current objects as well as the constraint_type" (t))
+(defun get-current-value(msg) "Returns the required relative/absolute value based on target and current objects as well as the constraint_type" t)
 
 ;;  (cond ((= constraint_type POSITION)
 ;;          (if is_relative (- (position target_object) (position source_object)) (position source_object))
@@ -74,24 +78,22 @@
 (defun raise-event-pb (msg) "Publishes already prepared messages"
   (publish *raise-event-pub* msg))
 
-;(defmethod prepare-msg ((event world-event))
-;  (make-message "event_bullet_world/EventUpdate"
-;                :header (make-msg "std_msgs/Header"
-;                                  :stamp (ros-time))
-;                :name (event-name event)
-;                :number_of_constraints (length (constraints event))
-;                :status (constraints event)
-;                :has_occured (numberp (position t (message event)))))
+(defmethod prepare-msg ((event physics-event))
+  (make-message (get-ros-name "EventUpdate")
+                :header (make-msg "std_msgs/Header"
+                                  :stamp (ros-time))
+                :name (event-name event)
+                :number_of_constraints (length (constraints event))
+                :status (constraints event)
+                :has_occured (numberp (position t (message event)))))
 
 (def-service-callback GetEventStatus (name)
   "callback which receives service calls"
-  ; find event by name
-  (make-response "event_bullet_world/EventStatus"
-                 :header (make-msg "std_msgs/Header"
-                                   :stamp (ros-time))
-                 ;; @TODO find event using name then use it here as shown
-                 :name "trial";(event-name event) ;; more of confirmation, than requirement
-                 ;; :has_occured (raise-event-on-true event)
-                 :number_of_constraints 5;(length (constraints event))
-                 :status (constraints event)
-                 :has_occured (numberp (position t (message event)))))
+  (let ((event (get-event-by-name name)))
+    (make-response "event_bullet_world/EventStatus"
+                   :header (make-msg "std_msgs/Header"
+                                     :stamp (ros-time))
+                   :name (event-name event)
+                   :number_of_constraints (length (constraints event))
+                   :status (constraints event)
+                   :has_occured (numberp (position t (message event))))))
