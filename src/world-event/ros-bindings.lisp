@@ -64,7 +64,7 @@
                               :event-name event_name
                               :response-type ros_binding_type
                               :constraints (coerce constraint_list 'list)
-                              :constraint_relation (coerce constraint_relation 'list)
+;                              :constraint_relation (coerce constraint_relation 'list)
                               :source-msg msg
                               ;; @TODO: right now returns a list, make it return t or nil
                               :raise-event-on-true
@@ -72,9 +72,13 @@
           ;; USE: https://github.com/mabragor/cl-secure-read ???
 ;                (if (is_custom) (eval (read-from-string custom_function)) ;; @TODO: this is clearly wrong
                   (setf (constraint-status-list event)
-                        (loop for item in (constraint-list event)
+                        (loop for item in (constraints event)
                                                       collect (single-constraint-check item)))
-                  (numberp (position t (constraint-status-list event))))))))
+                  (numberp (position t (constraint-status-list event)))))))
+  (ros-info EVENT_BULLET_WORLD "Event added, running checks now")
+  (make-thread :name (concatenate 'string (event-name event) "-thread")
+    (loop while (run-status event) do (single-check event)))
+)
   ; start it with a loop rate
 
 (defun raise-event-pb (msg) "Publishes already prepared messages"

@@ -5,12 +5,13 @@
     :initarg
     :event-name
     :accessor event-name
+    :initform "dummy"
     :documentation "Unique Name of the event, for more verbose/specific/debug output")
    (check-to-raise
     :initarg
     :raise-event-on-true
     ;:initform (error "Supply a function to evaluate which on true would raise an event")
-    :initform #'raise-event-as-fast-as-possible
+    :initform 'raise-event-as-fast-as-possible
     :accessor raise-event-on-true
     :documentation "Function which on evaluating to true results in raising of the required event")
    (source-message
@@ -40,11 +41,13 @@
    (active-status
     :initarg
     :run-status
+    :initform t
     :accessor run-status
     :documentation "Stores the status of the event. nil signifies passive, t means active")
    (cancel-flag
     :initarg
     :removal-requested
+    :initform nil
     :accessor removal-requested
     :documentation "t if event is to be moved from active to passive")
    (constraint-list
@@ -62,11 +65,13 @@
    (event-status
     :initarg
     :status
+    :initform nil
     :accessor status
     :documentation "status of physics event, after the necessary operations")
    (constraint-status-list
     :initarg
     :constraint-status-list
+    :initform ()
     :accessor constraint-status-list
     :documentation "status of each constraint")
 ))
@@ -103,7 +108,14 @@
     (otherwise (error "Wrong :response-type provided. ROS provides only 4 communication protocols. Choose one of them"))  ; strictly, not required.
 ))
 
+(defgeneric raise-event-as-fast-as-possible (event)
+  (:documentation "Sends true for any call with any event as input"))
+(defgeneric never-raise-event (event)
+  (:documentation "Never send true for any event"))
+
 (defmethod raise-event-as-fast-as-possible ((event physics-event)) t)
+; (defun raise-event-as-fast-as-possible () t)
+(defmethod never-raise-event ((event physics-event)) nil)
 
 (defun get-event-by-name (name)
   (or (get-physics-event-by-name name) (get-other-event-by-name name)))
@@ -133,3 +145,13 @@
 ;; (defun velocity ((event physics-event))
 ;; something using prolog queries just like in cram-projection-demos/src/utilities/objects.lisp
 
+(defmethod single-check ((event physics-event))
+  (if (removal-requested event)
+    (setf (run-status event) nil)
+    (progn ;(ros-info EVENT_BULLET_WORLD "Checking one single time")
+      (let ((detail-status (funcall (raise-event-on-true event) event)))
+            ; use the constraint_relation here to set the final status
+            (if (equal detail-status t) (setf (status event) t)))
+      (if (status event)
+        (on-event event))
+      t)))
