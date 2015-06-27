@@ -11,13 +11,8 @@
 
 (defun init-ros-elements ()
   "Subscribes to topics, binds call backs"
-  (setf *raise-event-pub*
-        (advertise (get-ros-name "event_update")
-                            (get-ros-name "EventUpdate")))
-;  (setf *add-event-sub*
-        (subscribe (get-ros-name "physics/add_event")
-                          (get-ros-name "AddPhysicsEvent")
-                          #'add-physics-event-cb);)
+  (setf *raise-event-pub* (advertise (get-ros-name "event_update") (get-ros-name "EventUpdate")))
+  (subscribe (get-ros-name "physics/add_event") (get-ros-name "AddPhysicsEvent") #'add-physics-event-cb)
   (register-service "event_status" 'EventStatus))
 
 ;; @brief Uses the current value (position, velocity or acceleration) of an object
@@ -38,27 +33,28 @@
 ;                  ;(if is_interior (and (> min value) (< max value)) (or (< min value) (> max value)))
 ;                  t
 ;                  )))))
-))
+)
+  t)
 
 ; @TODO: defun position (obj_name), velocity (obj_name), acceleration (obj_name): from prolog? just a thought from projection_demos
 
 ;; Slight renaming required. Target object means relative wrt the target object, not wrt the source object
 
-(defun get-current-value(msg) "Returns the required relative/absolute value based on target and current objects as well as the constraint_type" t)
-
-;;  (cond ((= constraint_type POSITION)
-;;          (if is_relative (- (position target_object) (position source_object)) (position source_object))
-;;        )
-;;        ((= constraint_type VELOCITY)
-;;          (if is_relative (- (velocity target_object) (velocity source_object)) (velocity source_object))
-;;        )
-;;        ((= constraint_type ACCELERATION)
-;;          (if is_relative (- (acceleration target_object) (acceleration source_object)) (acceleration source_object))
-;;        )
-;;        (t
-;;          (ros-warn EVENT_BULLET_WORLD "Wrong constraint_type provided, falling back to position")
-;;          (if is_relative (- (position target_object) (position source_object)) (position source_object)) ;; or call the fn again with constraint_type as POSITION? which is better?
-;;)))
+(defun get-current-value(msg) "Returns the required relative/absolute value based on target and current objects as well as the constraint_type"
+  t)
+;  (cond ((= constraint_type POSITION)
+;          (if is_relative (- (position source_object) (position target_object)) (position source_object))
+;        )
+;        ((= constraint_type VELOCITY)
+;          (if is_relative (- (velocity source_object) (velocity target_object)) (velocity source_object))
+;        )
+;        ((= constraint_type ACCELERATION)
+;          (if is_relative (- (acceleration source_object) (acceleration target_object)) (acceleration source_object))
+;        )
+;        (t
+;          (ros-warn EVENT_BULLET_WORLD "Wrong constraint_type provided, falling back to position")
+;          (if is_relative (- (position source_object) (position target_object)) (position source_object)) ;; or call the fn again with constraint_type as POSITION? which is better?
+;)))
 
 (defun add-physics-event-cb (msg) "Callback for new event values"
   (with-fields (event_name constraints ros_binding_type is_custom constraint_relation) msg
@@ -67,6 +63,7 @@
                               :response-type ros_binding_type
                               :constraints constraints
                               :constraint_relation constraint_relation
+                              :source-msg msg
                               )))
   ; start it with a loop rate
   )
