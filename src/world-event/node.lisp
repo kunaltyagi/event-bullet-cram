@@ -8,4 +8,7 @@
     (ros-warn EVENT-BULLET-WORLD "Event raising node started")
     (loop-at-most-every 1
       ;(ros-info EVENT-BULLET-WORLD "Looping")
+      ;for every event in physics event list,
+      ;run it if it is not cancelled and is active
+      ;(in a different thread)
 )))

@@ -85,7 +85,7 @@
                 :name (event-name event)
                 :number_of_constraints (length (constraints event))
                 :status (constraints event)
-                :has_occured (numberp (position t (message event)))))
+                :has_occured (status event)))
 
 (def-service-callback GetEventStatus (name)
   "callback which receives service calls"
@@ -96,4 +96,4 @@
                    :name (event-name event)
                    :number_of_constraints (length (constraints event))
                    :status (constraints event)
-                   :has_occured (numberp (position t (message event))))))
+                   :has_occured (status event))))
