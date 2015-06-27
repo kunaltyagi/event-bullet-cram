@@ -10,7 +10,7 @@
     :initarg
     :raise-event-on-true
     ;:initform (error "Supply a function to evaluate which on true would raise an event")
-    :initform 'raise-event-as-fast-as-possible
+    :initform #'raise-event-as-fast-as-possible
     :accessor raise-event-on-true
     :documentation "Function which on evaluating to true results in raising of the required event")
    (source-message
@@ -51,6 +51,11 @@
     :constraints
     :accessor constraints
     :documentation "list of value of constraints")
+   (constraint-relations
+    :initarg
+    :constraint-relation
+    :accessor constraint_relation
+    :documentation "boolean relations between the constraints")
    (event-status
     :initarg
     :status

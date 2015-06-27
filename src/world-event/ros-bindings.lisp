@@ -13,12 +13,12 @@
   "Subscribes to topics, binds call backs"
   (setf *raise-event-pub*
         (advertise (get-ros-name "event_update")
-                            (get-ros-name "EventUpdate"))
+                            (get-ros-name "EventUpdate")))
 ;  (setf *add-event-sub*
         (subscribe (get-ros-name "physics/add_event")
                           (get-ros-name "AddPhysicsEvent")
                           #'add-physics-event-cb);)
-  (register-service "event_status" 'GetEventStatus)))
+  (register-service "event_status" 'EventStatus))
 
 ;; @brief Uses the current value (position, velocity or acceleration) of an object
 ;; with respect to "world" or the target_object depending on is_absolute flag, and
@@ -60,20 +60,24 @@
 ;;          (if is_relative (- (position target_object) (position source_object)) (position source_object)) ;; or call the fn again with constraint_type as POSITION? which is better?
 ;;)))
 
-(defun add-physics-event-cb (msg) "Callback for new event values" t)
-;;  (with-fields (event_name constraints ros_binding_type is_custom) msg
-;;    (add-event (make-instance 'world-event
-;;                              :event-name event_name
-;;                              :response-type ros_binding_type
-;;                              :constraint-list constraints
-;;                              ;; @TODO: right now returns a list, make it return t or nil
-;;                              :raise-event-on-true 
-;;      #'(lambda (event) ; no need to use number_of_constraints
-;;          ;; USE: https://github.com/mabragor/cl-secure-read ???
-;;                (if (is_custom) (eval (read-from-string custom_function)) ;; @TODO: this is clearly wrong
-;;                 ((setf (slot-value event 'message (loop for item in (constraint-list event)
-;;                                                      collect (single-constraint-check item))))
-;;                  (numberp (position t (message event))))))))))
+(defun add-physics-event-cb (msg) "Callback for new event values"
+  (with-fields (event_name constraints ros_binding_type is_custom constraint_relation) msg
+    (add-physics-event (make-instance 'world-event
+                              :event-name event_name
+                              :response-type ros_binding_type
+                              :constraints constraints
+                              :constraint_relation constraint_relation
+                              )))
+  ; start it with a loop rate
+  )
+                              ;; @TODO: right now returns a list, make it return t or nil
+;                              :raise-event-on-true
+;      #'(lambda (event) ; no need to use number_of_constraints
+;          ;; USE: https://github.com/mabragor/cl-secure-read ???
+;                (if (is_custom) (eval (read-from-string custom_function)) ;; @TODO: this is clearly wrong
+;                 ((setf (slot-value event 'message (loop for item in (constraint-list event)
+;                                                      collect (single-constraint-check item))))
+;                  (numberp (position t (message event))))))))))
 
 (defun raise-event-pb (msg) "Publishes already prepared messages"
   (publish *raise-event-pub* msg))
@@ -87,7 +91,7 @@
                 :status (constraints event)
                 :has_occured (status event)))
 
-(def-service-callback GetEventStatus (name)
+(def-service-callback EventStatus (name)
   "callback which receives service calls"
   (let ((event (get-event-by-name name)))
     (make-response "event_bullet_world/EventStatus"

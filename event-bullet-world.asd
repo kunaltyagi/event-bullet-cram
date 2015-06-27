@@ -22,6 +22,6 @@
                       (
                        (:file "physics-event" :depends-on ("ros-bindings"))
                        (:file "ros-bindings") ; :depends-on ("physics-event"))
-                       (:file "node" :depends-on ("ros-bindings"))
+                       (:file "node" :depends-on ("ros-bindings" "physics-event"))
                       ))
              ))))
