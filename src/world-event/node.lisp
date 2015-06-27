@@ -7,7 +7,7 @@
     ;(advertise (get-ros-name "add_event") (get-ros-name "EventUpdate"))
     (ros-warn EVENT_BULLET_WORLD "Event raising node started")
     (loop-at-most-every 1
-      ;(ros-info EVENT_BULLET_WORLD "Looping")
+      (ros-info EVENT_BULLET_WORLD "Looping")
       ;for every event in physics event list,
       ;run it if it is not cancelled and is active
       ;(in a different thread)

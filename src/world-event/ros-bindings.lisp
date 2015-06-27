@@ -13,7 +13,8 @@
   "Subscribes to topics, binds call backs"
   (setf *raise-event-pub* (advertise (get-ros-name "event_update") (get-ros-name "EventUpdate")))
   (subscribe (get-ros-name "physics/add_event") (get-ros-name "AddPhysicsEvent") #'add-physics-event-cb)
-  (register-service "event_status" 'EventStatus))
+;  (register-service "event_status" 'EventStatus))
+)
 
 ;; @brief Uses the current value (position, velocity or acceleration) of an object
 ;; with respect to "world" or the target_object depending on is_absolute flag, and
@@ -57,24 +58,24 @@
 ;)))
 
 (defun add-physics-event-cb (msg) "Callback for new event values"
-  (with-fields (event_name constraints ros_binding_type is_custom constraint_relation) msg
-    (add-physics-event (make-instance 'world-event
+  (ros-info EVENT_BULLET_WORLD "Adding Physics Event to list")
+  (with-fields (event_name constraint_list ros_binding_type is_custom constraint_relation) msg
+    (add-physics-event (make-instance 'physics-event
                               :event-name event_name
                               :response-type ros_binding_type
-                              :constraints constraints
-                              :constraint_relation constraint_relation
+                              :constraints (coerce constraint_list 'list)
+                              :constraint_relation (coerce constraint_relation 'list)
                               :source-msg msg
-                              )))
-  ; start it with a loop rate
-  )
                               ;; @TODO: right now returns a list, make it return t or nil
-;                              :raise-event-on-true
-;      #'(lambda (event) ; no need to use number_of_constraints
-;          ;; USE: https://github.com/mabragor/cl-secure-read ???
+                              :raise-event-on-true
+      #'(lambda (event) ; no need to use number_of_constraints
+          ;; USE: https://github.com/mabragor/cl-secure-read ???
 ;                (if (is_custom) (eval (read-from-string custom_function)) ;; @TODO: this is clearly wrong
-;                 ((setf (slot-value event 'message (loop for item in (constraint-list event)
-;                                                      collect (single-constraint-check item))))
-;                  (numberp (position t (message event))))))))))
+                  (setf (constraint-status-list event)
+                        (loop for item in (constraint-list event)
+                                                      collect (single-constraint-check item)))
+                  (numberp (position t (constraint-status-list event))))))))
+  ; start it with a loop rate
 
 (defun raise-event-pb (msg) "Publishes already prepared messages"
   (publish *raise-event-pub* msg))

@@ -32,6 +32,7 @@
     :documentation "List of timestamps at which the event occured. Latest timestamp is appended to the beginning of the list")
    ;; @TODO: do what ros-msg actually should do
    (ros-msg
+    ; no need currently. Maybe required in a race condition. Not sure
     :initarg
     :message
     :accessor message
@@ -49,11 +50,13 @@
    (constraint-list
     :initarg
     :constraints
+    :initform ()
     :accessor constraints
     :documentation "list of value of constraints")
    (constraint-relations
     :initarg
     :constraint-relation
+    :initform ()
     :accessor constraint_relation
     :documentation "boolean relations between the constraints")
    (event-status
@@ -61,6 +64,11 @@
     :status
     :accessor status
     :documentation "status of physics event, after the necessary operations")
+   (constraint-status-list
+    :initarg
+    :constraint-status-list
+    :accessor constraint-status-list
+    :documentation "status of each constraint")
 ))
 
 (defmethod initialize-instance :after ((event physics-event) &key ) ;((:debug debug-mode) 0 debug-mode-supplied-p))
