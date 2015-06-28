@@ -22,7 +22,6 @@
    (ros-binding
     :initarg
     :response-type
-    :initform 0 ;; 1 for message response on topic, 2 for service, etc.
     :accessor response-type
     :documentation "ROS binding to use for raising the event, see the error message on setting response-type to 5")
    (occured-at
@@ -77,6 +76,7 @@
 ))
 
 (defmethod initialize-instance :after ((event physics-event) &key ) ;((:debug debug-mode) 0 debug-mode-supplied-p))
+  "sets some required parameters on ROS server and ros-info for run-time ACK"
   (case (response-type event)
     (0 (format t "No ROS bindings provided, all clear: ~a event~%" (event-name event)))
     (1 (ros-info EVENT_BULLET_WORLD "Message chosen for communication"))
@@ -92,12 +92,12 @@
     (otherwise (error "Wrong :response-type provided. ROS provides only 4 communication protocols: \n1. Messages\n2. Services\n3. Actions\n4. Parameters\nPlease choose the correct one. No fallback"))))
 
 (defmethod eq-physics-event ((lhs physics-event) (rhs physics-event))
+  "Equality for 2 physics-event is based on their names, nothing else"
   (string= (event-name lhs) (event-name rhs)))
 
-;; @gaya- did you mean this instead of
 (defmethod on-event :after ((event physics-event))
+  "After on-event is called, do the necessary stuff via ROS"
   (append (list (ros-time)) (occurance-stack event))
-  ;; or should event-timestamp be used for this purpose?
   (case (response-type event)
     (0 (format t "~a Event occured~%" (event-name event)))
     (1 (raise-event-pb (prepare-msg event)))  ; publishing here
@@ -118,34 +118,45 @@
 (defmethod never-raise-event ((event physics-event)) nil)
 
 (defun get-event-by-name (name)
+  "Returns the event provided the name is there on some list"
   (or (get-physics-event-by-name name) (get-other-event-by-name name)))
 
 (defun get-other-event-by-name (name)
+  "Will incorporate calls to object-event and logical-event functions"
   (make-instance 'physics-event
                  :event-name name))
 
-(defparameter *physics-event-list* ())
-(defparameter *read-write-mutex* (make-mutex :name "physics-event-list-mutex"))
+(defparameter *physics-event-list* () "All lhysics events created are here")
+(defparameter *read-write-mutex* (make-mutex :name "physics-event-list-mutex") "Mutex with one writer OR infi reader concept")
 
 (defmethod add-physics-event ((event physics-event))
-  ;deep copy the event??
+  "Add the physics-event to the list"
+  ;@Gaya- : deep copy the event??
   (with-mutex (*read-write-mutex*) (append (list event) *physics-event-list*)))
 
 (defun get-physics-event-by-name (name)
+  "Return nil or a physics-event with the provided name"
   (loop for event in *physics-event-list* when (string= name (event-name event)) return event))
 
 (defmethod remove-physics-event ((event physics-event))
+  "Removes the event from the list (comparison by name only)"
   (with-mutex (*read-write-mutex*) (remove-if #'(lambda (x) (eq-physics-event event x)) *physics-event-list*)))
 
 (defun remove-event-by-name (name)
+  "Removes the event with the same name from the list"
   (with-mutex (*read-write-mutex*) (remove-if #'(lambda (x) (string= name (event-name x))) *physics-event-list*)))
 
-(defun get-physics-event-list () (copy-list *physics-event-list*))
+(defun get-physics-event-list ()
+;;  @TODO
+  "Returns a deep-copy of the list for use by anyone else, to be used for query over ROS for existing events"
+  (copy-list *physics-event-list*))
 
+;; @TODO
 ;; (defun velocity ((event physics-event))
 ;; something using prolog queries just like in cram-projection-demos/src/utilities/objects.lisp
 
 (defmethod single-check ((event physics-event))
+  "This function will check for occurance of event based on serveral conditions, and return nil if it should not be checked again, t otherwise"
   (if (removal-requested event)
     (setf (run-status event) nil)
     (progn ;(ros-info EVENT_BULLET_WORLD "Checking one single time")

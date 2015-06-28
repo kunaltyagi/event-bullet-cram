@@ -1,19 +1,21 @@
 (in-package :event-bullet-world)
 
 (defparameter ros-binding-base-name "event_bullet_world")
-(defun get-ros-name (inp) (concatenate 'string ros-binding-base-name "/" inp))
+(defun get-ros-name (inp)
+  "Gets the correct name for ROS related inp related to this package"
+  (concatenate 'string ros-binding-base-name "/" inp))
 
 ; (defparameter *add-event-msg* (make-fluent :name :new-event) "New event to be checked for")
 ; (defparameter *raise-event-msg* (make-fluent :name :new-event) "New event raised")
 
 (defparameter *raise-event-pub* nil "Raised event published by this publisher")
-(defparameter *add-event-sub* nil "New events to be added read from here")
+; (defparameter *add-event-sub* nil "New events to be added read from here")
 
 (defun init-ros-elements ()
-  "Subscribes to topics, binds call backs"
+  "Subscribes to topics, binds service server call backs"
   (setf *raise-event-pub* (advertise (get-ros-name "event_update") (get-ros-name "EventUpdate")))
   (subscribe (get-ros-name "physics/add_event") (get-ros-name "AddPhysicsEvent") #'add-physics-event-cb)
-;  (register-service "event_status" 'EventStatus))
+;  (register-service "event_status" 'EventStatus)
 )
 
 ;; @brief Uses the current value (position, velocity or acceleration) of an object
@@ -57,7 +59,8 @@
 ;          (if is_relative (- (position source_object) (position target_object)) (position source_object)) ;; or call the fn again with constraint_type as POSITION? which is better?
 ;)))
 
-(defun add-physics-event-cb (msg) "Callback for new event values"
+(defun add-physics-event-cb (msg)
+  "Callback for adding new events and starting a thread for them "
   (ros-info EVENT_BULLET_WORLD "Adding Physics Event to list")
   (with-fields (event_name constraint_list ros_binding_type is_custom constraint_relation) msg
     (add-physics-event (make-instance 'physics-event
@@ -70,31 +73,32 @@
                               :raise-event-on-true
       #'(lambda (event) ; no need to use number_of_constraints
           ;; USE: https://github.com/mabragor/cl-secure-read ???
+          ;; @TODO
 ;                (if (is_custom) (eval (read-from-string custom_function)) ;; @TODO: this is clearly wrong
                   (setf (constraint-status-list event)
                         (loop for item in (constraints event)
                                                       collect (single-constraint-check item)))
-                  ;(numberp (position t (constraint-status-list event)))
                   )))
-  (ros-info EVENT_BULLET_WORLD "Event added, running checks now")
   (let ((event (get-event-by-name event_name)))
+  ;  (ros-info EVENT_BULLET_WORLD "~a Event added, ~a bindings. Running checks now" (event-name event) (response-type event))
     (create-thread event)))
 )
 
 (defmethod create-thread ((event physics-event))
+  "Common function to create thread for some event. Calling it twice for same event would result in error since 2 threads with same name will be created"
   (make-thread :name (concatenate 'string (event-name event) "-thread")
-    (ros-info EVENT_BULLET_WORLD "Creating thread for ~a event ~%" (event-name event));
+    (ros-info EVENT_BULLET_WORLD "Creating thread for ~a event ~%" (event-name event))
     (loop-at-most-every (get-param "loop-rate")
       (if (run-status event) (single-check event) (return-from create-thread nil)))
-    (ros-info EVENT_BULLET_WORLD "Exiting thread for ~a event ~%" (event-name event));
-    ))
+    (ros-info EVENT_BULLET_WORLD "Exiting thread for ~a event ~%" (event-name event))
+))
 
-  ; start it with a loop rate
-
-(defun raise-event-pb (msg) "Publishes already prepared messages"
+(defun raise-event-pb (msg)
+  "Publishes already prepared messages"
   (publish *raise-event-pub* msg))
 
 (defmethod prepare-msg ((event physics-event))
+  "Creates messages to be published with results of constraints, their violations, etc."
   (make-message (get-ros-name "EventUpdate")
                 :header (make-msg "std_msgs/Header"
                                   :stamp (ros-time))
@@ -104,7 +108,7 @@
                 :has_occured (status event)))
 
 (def-service-callback EventStatus (name)
-  "callback which receives service calls"
+  "Callback which receives service calls and responds in kind"
   (let ((event (get-event-by-name name)))
     (make-response "event_bullet_world/EventStatus"
                    :header (make-msg "std_msgs/Header"
