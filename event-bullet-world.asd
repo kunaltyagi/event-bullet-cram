@@ -17,6 +17,7 @@
   ((:module "src"
             :components
             ((:file "package")
+             (:file "object-event" :depends-on ("world-event"))
              (:module "world-event" :depends-on ("package")
                       :components
                       (

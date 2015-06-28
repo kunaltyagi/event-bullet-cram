@@ -1,6 +1,6 @@
 (in-package :event-bullet-world)
 
-(defclass physics-event (event) ; contains creation timestamp in event-timestamp, required: occurance time-stamp
+(defclass physics-event (event) 
   ((name
     :initarg
     :event-name
@@ -22,6 +22,7 @@
    (ros-binding
     :initarg
     :response-type
+    :initform 0
     :accessor response-type
     :documentation "ROS binding to use for raising the event, see the error message on setting response-type to 5")
    (occured-at
@@ -73,7 +74,8 @@
     :initform ()
     :accessor constraint-status-list
     :documentation "status of each constraint")
-))
+  )
+  (:documentation "contains creation timestamp in event-timestamp, required: occurance time-stamp"))
 
 (defmethod initialize-instance :after ((event physics-event) &key ) ;((:debug debug-mode) 0 debug-mode-supplied-p))
   "sets some required parameters on ROS server and ros-info for run-time ACK"
@@ -127,12 +129,12 @@
                  :event-name name))
 
 (defparameter *physics-event-list* () "All lhysics events created are here")
-(defparameter *read-write-mutex* (make-mutex :name "physics-event-list-mutex") "Mutex with one writer OR infi reader concept")
+(defparameter *physics-read-write-mutex* (make-mutex :name "physics-event-list-mutex") "Mutex with one writer OR infi reader concept")
 
 (defmethod add-physics-event ((event physics-event))
   "Add the physics-event to the list"
   ;@Gaya- : deep copy the event??
-  (with-mutex (*read-write-mutex*) (append (list event) *physics-event-list*)))
+  (with-mutex (*physics-read-write-mutex*) (append (list event) *physics-event-list*)))
 
 (defun get-physics-event-by-name (name)
   "Return nil or a physics-event with the provided name"
@@ -140,11 +142,11 @@
 
 (defmethod remove-physics-event ((event physics-event))
   "Removes the event from the list (comparison by name only)"
-  (with-mutex (*read-write-mutex*) (remove-if #'(lambda (x) (eq-physics-event event x)) *physics-event-list*)))
+  (with-mutex (*physics-read-write-mutex*) (remove-if #'(lambda (x) (eq-physics-event event x)) *physics-event-list*)))
 
 (defun remove-event-by-name (name)
   "Removes the event with the same name from the list"
-  (with-mutex (*read-write-mutex*) (remove-if #'(lambda (x) (string= name (event-name x))) *physics-event-list*)))
+  (with-mutex (*physics-read-write-mutex*) (remove-if #'(lambda (x) (string= name (event-name x))) *physics-event-list*)))
 
 (defun get-physics-event-list ()
 ;;  @TODO
