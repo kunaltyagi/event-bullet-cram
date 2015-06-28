@@ -74,11 +74,21 @@
                   (setf (constraint-status-list event)
                         (loop for item in (constraints event)
                                                       collect (single-constraint-check item)))
-                  (numberp (position t (constraint-status-list event)))))))
+                  ;(numberp (position t (constraint-status-list event)))
+                  )))
   (ros-info EVENT_BULLET_WORLD "Event added, running checks now")
-  (make-thread :name (concatenate 'string (event-name event) "-thread")
-    (loop while (run-status event) do (single-check event)))
+  (let ((event (get-event-by-name event_name)))
+    (create-thread event)))
 )
+
+(defmethod create-thread ((event physics-event))
+  (make-thread :name (concatenate 'string (event-name event) "-thread")
+    (ros-info EVENT_BULLET_WORLD "Creating thread for ~a event ~%" (event-name event));
+    (loop-at-most-every (get-param "loop-rate")
+      (if (run-status event) (single-check event) (return-from create-thread nil)))
+    (ros-info EVENT_BULLET_WORLD "Exiting thread for ~a event ~%" (event-name event));
+    ))
+
   ; start it with a loop rate
 
 (defun raise-event-pb (msg) "Publishes already prepared messages"

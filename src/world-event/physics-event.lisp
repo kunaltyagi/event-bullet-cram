@@ -99,7 +99,7 @@
   (append (list (ros-time)) (occurance-stack event))
   ;; or should event-timestamp be used for this purpose?
   (case (response-type event)
-    (0 (format t "~a Event~% occured" (event-name event)))
+    (0 (format t "~a Event occured~%" (event-name event)))
     (1 (raise-event-pb (prepare-msg event)))  ; publishing here
     (2 (ros-info EVENT_BULLET_WORLD "Event occured. Polling data updated")) ; do nothing here, it is a polling only feature
     (3 (ros-error EVENT_BULLET_WORLD "Actions not supported"))
