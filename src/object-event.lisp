@@ -27,7 +27,8 @@
 (defmethod add-object-event ((event object-event))
   "Adds object-event to relevant list"
   (ros-info EVENT_BULLET_WORLD "Adding object generated event (~a) to relevant list" (event-name event))
-  (with-mutex (*object-read-write-mutex*) (append (list event) *object-event-list*)))
+  (with-mutex (*object-read-write-mutex*)
+    (setf *object-event-list* (nconc *object-event-list* (list event)))))
 
 (defmethod get-object-event-list ()
   "Returns deepcopy of list"

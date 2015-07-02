@@ -156,7 +156,8 @@
 (defmethod add-physics-event ((event physics-event))
   "Add the physics-event to the list"
   ;@Gaya- : deep copy the event??
-  (with-mutex (*physics-read-write-mutex*) (append (list event) *physics-event-list*)))
+  (with-mutex (*physics-read-write-mutex*)
+    (setf *physics-event-list* (nconc *physics-event-list* (list event)))))
 
 (defun get-physics-event-by-name (name)
   "Return nil or a physics-event with the provided name"
@@ -171,7 +172,6 @@
   (with-mutex (*physics-read-write-mutex*) (remove-if #'(lambda (x) (string= name (event-name x))) *physics-event-list*)))
 
 (defun get-physics-event-list ()
-;;  @TODO
   "Returns a deep-copy of the list for use by anyone else, to be used for query over ROS for existing events"
   (copy-list *physics-event-list*))
 

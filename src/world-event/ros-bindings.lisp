@@ -12,7 +12,7 @@
   "Subscribes to topics, binds service server call backs"
   (setf *raise-event-pub* (advertise (get-ros-name "event_update") (get-ros-name "EventUpdate")))
   (subscribe (get-ros-name "physics/add_event") (get-ros-name "AddPhysicsEvent") #'add-physics-event-cb)
-  (register-service "event_status" 'event_bullet_world-srv:EventStatus)
+  (register-service "~/event_status" 'event_bullet_world-srv:EventStatus)
 )
 
 ;; @brief Uses the current value (position, velocity or acceleration) of an object
