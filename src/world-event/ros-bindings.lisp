@@ -23,10 +23,10 @@
 ;; @return (if (constraint violated) t nil)
 (defun single-constraint-check (constraint-msg) "Returns a lambda function which checks for this constraint"
   (with-fields(target_object source_object constraint_type
-              is_relative is_magnitude_constraint is_interior is_angluar
-              data min max) constraint-msg
+              is_relative is_scalar is_interior is_angular
+              min max) constraint-msg
     (setf target_object (if (string= target_object "") "world" target_object))
-    (ros-info EVENT_BULLET_WORLD "Checking constraint")
+;    (ros-info EVENT_BULLET_WORLD "Checking constraint")
 ;    (let ((msg constraint-msg))
 ;      (#'lambda ()
 ;                (let ((value (get-current-value msg)))
@@ -81,10 +81,10 @@
 ;  (funcall (custom-function event))
 ;  which is better??
         #'(lambda (event)
-          (setf (constraint-status-list event) '(t t))
+;          (ros-info EVENT_BULLET_WORLD "Single check")
           (loop for item in (constraints event)
             collect (single-constraint-check item))
-                  ))))
+                  t))))  ; t is a HACK for TESTING
   (let ((event (get-event-by-name event_name)))
   ;  (ros-info EVENT_BULLET_WORLD "~a Event added, ~a bindings. Running checks now" (event-name event) (response-type event))
     (create-thread event)))
@@ -92,6 +92,7 @@
 
 (defun raise-event-pb (msg)
   "Publishes already prepared messages"
+  (ros-info EVENT_BULLET_WORLD "Single check")
   (publish *raise-event-pub* msg))
 
 (def-service-callback event_bullet_world-srv:EventStatus (name)
