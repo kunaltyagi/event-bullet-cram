@@ -10,7 +10,7 @@
   "Subscribes to topics, binds service server call backs"
   (setf *raise-event-pub* (advertise (get-ros-name "event_update") (get-ros-name "EventUpdate")))
   (subscribe (get-ros-name "physics/add_event") (get-ros-name "AddPhysicsEvent") #'add-physics-event-cb)
-  (register-service "event_status" 'EventStatus)
+  (register-service "event_status" 'event_bullet_world-srv:EventStatus)
 )
 
 ;; @brief Uses the current value (position, velocity or acceleration) of an object
@@ -62,7 +62,7 @@
                               :event-name event_name
                               :response-type ros_binding_type
                               :constraints (coerce constraint_list 'list)
-;                              :constraint_relation (coerce constraint_relation 'list)
+                              :constraint-relation (coerce constraint_relation 'list)
                               :source-msg msg
                               ;; @TODO: right now returns a list, make it return t or nil
                               :raise-event-on-true
@@ -83,7 +83,7 @@
   "Publishes already prepared messages"
   (publish *raise-event-pub* msg))
 
-(def-service-callback EventStatus (name)
+(def-service-callback event_bullet_world-srv:EventStatus (name)
   "Callback which receives service calls and responds in kind"
   (let ((event (get-event-by-name name)))
     (make-response
