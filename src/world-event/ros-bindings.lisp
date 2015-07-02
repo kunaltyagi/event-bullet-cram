@@ -68,20 +68,20 @@
                               ;; @TODO: right now returns a list, make it return t or nil
                               :raise-event-on-true
       (if (= is_custom TRUE)
-        (#'(lambda (event)
+        #'(lambda (event)
           (with-fields (custom_function) (source-msg event)
             ;; USE: https://github.com/mabragor/cl-secure-read ???
-            (eval (read-from-string custom_function)))))  ; can also save the function to save overhead using:
+            (eval (read-from-string custom_function))))  ; can also save the function to save overhead using:
 ;  need to create a custom-function slot in physics-event
 ;  (setf (custom-function event) (concatenate 'string "#'(lambda () " custom_function ")" ))
 ;  then using
 ;  (funcall (custom-function event))
 ;  which is better??
-        (#'(lambda (event)
-          (setf (constraint-status-list event) (t t))
+        #'(lambda (event)
+          (setf (constraint-status-list event) '(t t))
 ;          (loop for item in (constraints event)
 ;            collect (single-constraint-check item)))
-                  )))))
+                  ))))
   (let ((event (get-event-by-name event_name)))
   ;  (ros-info EVENT_BULLET_WORLD "~a Event added, ~a bindings. Running checks now" (event-name event) (response-type event))
     (create-thread event)))

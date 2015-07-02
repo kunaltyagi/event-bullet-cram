@@ -30,3 +30,7 @@ int32 AND = 1
 int32 OR = 2
 int32 XOR = 3
 int32 NOT = 4
+
+# is_custom values
+int32 TRUE = 1
+int32 FALSE = 0
