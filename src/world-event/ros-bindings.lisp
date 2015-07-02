@@ -2,6 +2,8 @@
 
 ; (defparameter *add-event-msg* (make-fluent :name :new-event) "New event to be checked for")
 ; (defparameter *raise-event-msg* (make-fluent :name :new-event) "New event raised")
+(defun get-constant-value (msg slot)
+  (roslisp-msg-protocol:symbol-code msg slot))
 
 (defparameter *raise-event-pub* nil "Raised event published by this publisher")
 ; (defparameter *add-event-sub* nil "New events to be added read from here")
@@ -58,7 +60,7 @@
   "Callback for adding new events and starting a thread for them "
   (ros-info EVENT_BULLET_WORLD "Adding Physics Event to list")
   (with-fields (event_name constraint_list ros_binding_type is_custom constraint_relation
-                custom_function TRUE FALSE) msg
+                custom_function) msg
     (add-physics-event (make-instance 'physics-event
                               :event-name event_name
                               :response-type ros_binding_type
@@ -67,7 +69,7 @@
                               :source-msg msg
                               ;; @TODO: right now returns a list, make it return t or nil
                               :raise-event-on-true
-      (if (= is_custom TRUE)
+      (if (= is_custom (get-constant-value 'event_bullet_world-msg:AddPhysicsEvent :TRUE))
         #'(lambda (event)
           (with-fields (custom_function) (source-msg event)
             ;; USE: https://github.com/mabragor/cl-secure-read ???
