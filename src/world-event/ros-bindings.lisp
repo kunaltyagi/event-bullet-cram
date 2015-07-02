@@ -1,10 +1,5 @@
 (in-package :event-bullet-world)
 
-(defparameter ros-binding-base-name "event_bullet_world")
-(defun get-ros-name (inp)
-  "Gets the correct name for ROS related inp related to this package"
-  (concatenate 'string ros-binding-base-name "/" inp))
-
 ; (defparameter *add-event-msg* (make-fluent :name :new-event) "New event to be checked for")
 ; (defparameter *raise-event-msg* (make-fluent :name :new-event) "New event raised")
 
@@ -84,28 +79,9 @@
     (create-thread event)))
 )
 
-(defmethod create-thread ((event physics-event))
-  "Common function to create thread for some event. Calling it twice for same event would result in error since 2 threads with same name will be created"
-  (make-thread :name (concatenate 'string (event-name event) "-thread")
-    (ros-info EVENT_BULLET_WORLD "Creating thread for ~a event ~%" (event-name event))
-    (loop-at-most-every (get-param "loop-rate")
-      (if (run-status event) (single-check event) (return-from create-thread nil)))
-    (ros-info EVENT_BULLET_WORLD "Exiting thread for ~a event ~%" (event-name event))
-))
-
 (defun raise-event-pb (msg)
   "Publishes already prepared messages"
   (publish *raise-event-pub* msg))
-
-(defmethod prepare-msg ((event physics-event))
-  "Creates messages to be published with results of constraints, their violations, etc."
-  (make-message (get-ros-name "EventUpdate")
-                :header (make-msg "std_msgs/Header"
-                                  :stamp (ros-time))
-                :name (event-name event)
-                :number_of_constraints (length (constraints event))
-                :status (constraints event)
-                :has_occured (status event)))
 
 (def-service-callback EventStatus (name)
   "Callback which receives service calls and responds in kind"

@@ -1,6 +1,15 @@
 (in-package :event-bullet-world)
 
-(defclass physics-event (event) 
+; start generic stuff
+; can be put into a more basic lisp file
+(defparameter ros-binding-base-name "event_bullet_world")
+(defun get-ros-name (inp)
+  "Gets the correct name for ROS related inp related to this package"
+  (concatenate 'string ros-binding-base-name "/" inp))
+; end generic stuff
+
+; start class physics-event related stuff
+(defclass physics-event (event)
   ((name
     :initarg
     :event-name
@@ -93,10 +102,6 @@
        (set-param (concatenate (event-name event) "/status") (message event)))  ; set the parameter to 0, so parameter server has the required param, as well as detailed status
     (otherwise (error "Wrong :response-type provided. ROS provides only 4 communication protocols: \n1. Messages\n2. Services\n3. Actions\n4. Parameters\nPlease choose the correct one. No fallback"))))
 
-(defmethod eq-physics-event ((lhs physics-event) (rhs physics-event))
-  "Equality for 2 physics-event is based on their names, nothing else"
-  (string= (event-name lhs) (event-name rhs)))
-
 (defmethod on-event :after ((event physics-event))
   "After on-event is called, do the necessary stuff via ROS"
   (append (list (ros-time)) (occurance-stack event))
@@ -114,6 +119,23 @@
   (:documentation "Sends true for any call with any event as input"))
 (defgeneric never-raise-event (event)
   (:documentation "Never send true for any event"))
+(defgeneric eq-physics-event (event event)
+  (:documentation "Equate lhs and rhs based on their name"))
+(defgeneric add-physics-event (event)
+  (:documentation "Add event to internal list which runs at 1 Hz"))
+(defgeneric remove-physics-event (event)
+  ;; @TODO: implement ROS wrappers for this
+  (:documentation "Set event as passive. It will not be checked until activated"))
+(defgeneric single-check (event)
+  (:documentation "Runs in a loop, for checking the status of the event once. Calls required function internally"))
+(defgeneric create-thread (event)
+  (:documentation "Creates thread for the event and runs single-check till the event is active"))
+(defgeneric prepare-msg (event)
+  (:documentation "Returns EventUpdate ROS msg for event"))
+
+(defmethod eq-physics-event ((lhs physics-event) (rhs physics-event))
+  "Equality for 2 physics-event is based on their names, nothing else"
+  (string= (event-name lhs) (event-name rhs)))
 
 (defmethod raise-event-as-fast-as-possible ((event physics-event)) t)
 ; (defun raise-event-as-fast-as-possible () t)
@@ -168,3 +190,23 @@
       (if (status event)
         (on-event event))
       t)))
+
+(defmethod create-thread ((event physics-event))
+  "Common function to create thread for some event. Calling it twice for same event would result in error since 2 threads with same name will be created"
+  (make-thread :name (concatenate 'string (event-name event) "-thread")
+    (ros-info EVENT_BULLET_WORLD "Creating thread for ~a event ~%" (event-name event))
+    (loop-at-most-every (get-param "loop-rate")
+      (if (run-status event) (single-check event) (return-from create-thread nil)))
+    (ros-info EVENT_BULLET_WORLD "Exiting thread for ~a event ~%" (event-name event))
+))
+
+(defmethod prepare-msg ((event physics-event))
+  "Creates messages to be published with results of constraints, their violations, etc."
+  (make-message (get-ros-name "EventUpdate")
+                :header (make-msg "std_msgs/Header"
+                                  :stamp (ros-time))
+                :name (event-name event)
+                :number_of_constraints (length (constraints event))
+                :status (constraints event)
+                :has_occured (status event)))
+; end class physics-event related stuff

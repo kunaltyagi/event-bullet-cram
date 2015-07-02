@@ -3,6 +3,15 @@
 (defclass object-event (physics-event) ()
   (:documentation "All object generated events, will inherit from other events too"))
 
+(defgeneric add-object-event (event)
+  (:documentation "Adds object generated event to internal list"))
+(defgeneric get-object-event-list ()
+  ;; ROS wrappers required??
+  (:documentation "Returns read-write safe copy of internal list"))
+(defgeneric eq-object-event (event event)
+  ;; replace eq-physics-event and eq-object event with eq-event??
+  (:documentation "Checks 2 object generated events based on their names"))
+
 ;; this is better than simply maintaining two different lists fo object events and world events since we don't
 ;; know the complete requirements for obj-events. However, for now, the two are indistinguisible except for the
 ;; fact that object-events have to call on-event function themselves (somehow) while for world-event objects,
@@ -33,5 +42,5 @@
   (append (list (ros-time)) (occurance-stack event))
   (if (not (numberp (position event *object-event-list* :test 'eq-object-event)))
       (add-object-event event))
-  t)
+  t)  ; t to prevent (add-object-event xx) output going to the user
 
