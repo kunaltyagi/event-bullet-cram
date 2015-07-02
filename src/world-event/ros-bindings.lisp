@@ -10,7 +10,7 @@
   "Subscribes to topics, binds service server call backs"
   (setf *raise-event-pub* (advertise (get-ros-name "event_update") (get-ros-name "EventUpdate")))
   (subscribe (get-ros-name "physics/add_event") (get-ros-name "AddPhysicsEvent") #'add-physics-event-cb)
-;  (register-service "event_status" 'EventStatus)
+  (register-service "event_status" 'EventStatus)
 )
 
 ;; @brief Uses the current value (position, velocity or acceleration) of an object
@@ -86,7 +86,7 @@
 (def-service-callback EventStatus (name)
   "Callback which receives service calls and responds in kind"
   (let ((event (get-event-by-name name)))
-    (make-response "event_bullet_world/EventStatus"
+    (make-response
                    :header (make-msg "std_msgs/Header"
                                      :stamp (ros-time))
                    :name (event-name event)
