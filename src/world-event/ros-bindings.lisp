@@ -10,9 +10,9 @@
 
 (defun init-ros-elements ()
   "Subscribes to topics, binds service server call backs"
-  (setf *raise-event-pub* (advertise (get-ros-name "event_update") (get-ros-name "EventUpdate")))
-  (subscribe (get-ros-name "physics/add_event") (get-ros-name "AddPhysicsEvent") #'add-physics-event-cb)
-  (register-service "~/event_status" 'event_bullet_world-srv:EventStatus)
+  (setf *raise-event-pub* (advertise (get-node-name "event_update") (get-ros-name "EventUpdate")))
+  (subscribe (get-node-name "physics/add_event") (get-ros-name "AddPhysicsEvent") #'add-physics-event-cb)
+  (register-service "~/event_status" 'event_bullet_world-srv:EventStatus)  ; no need for get-node-name
 )
 
 ;; @brief Uses the current value (position, velocity or acceleration) of an object
@@ -81,7 +81,6 @@
 ;  (funcall (custom-function event))
 ;  which is better??
         #'(lambda (event)
-;          (ros-info EVENT_BULLET_WORLD "Single check")
           (loop for item in (constraints event)
             collect (single-constraint-check item))
                   t))))  ; t is a HACK for TESTING
@@ -92,7 +91,6 @@
 
 (defun raise-event-pb (msg)
   "Publishes already prepared messages"
-  (ros-info EVENT_BULLET_WORLD "Single check")
   (publish *raise-event-pub* msg))
 
 (def-service-callback event_bullet_world-srv:EventStatus (name)

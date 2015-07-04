@@ -6,6 +6,9 @@
 (defun get-ros-name (inp)
   "Gets the correct name for ROS related inp related to this package"
   (concatenate 'string ros-binding-base-name "/" inp))
+(defun get-node-name (inp)
+  "Gets the absolute name of inp (inp is relative to the node"
+  (concatenate 'string *ros-node-name* "/" inp))
 ; end generic stuff
 
 ; start class physics-event related stuff
@@ -107,7 +110,8 @@
   (append (list (ros-time)) (occurance-stack event))
   (case (response-type event)
     (0 (format t "~a Event occured~%" (event-name event)))
-    (1 (raise-event-pb (prepare-msg event)))  ; publishing here
+    (1 (ros-info EVENT_BULLET_WORLD "Publishing message") (prepare-msg event))
+       ;(raise-event-pb (prepare-msg event)))  ; publishing here
     (2 (ros-info EVENT_BULLET_WORLD "Event occured. Polling data updated")) ; do nothing here, it is a polling only feature
     (3 (ros-error EVENT_BULLET_WORLD "Actions not supported"))
     (4 (set-param (event-name event) 1)
@@ -129,7 +133,9 @@
 (defgeneric single-check (event)
   (:documentation "Runs in a loop, for checking the status of the event once. Calls required function internally"))
 (defgeneric create-thread (event)
-  (:documentation "Creates thread for the event and runs single-check till the event is active"))
+  (:documentation "Creates thread for the event and runs thread-function (with mutex?)"))
+(defgeneric thread-function (event)
+  (:documentation "Called by create-thread function. Handles implementation, runs single-check till the event is active"))
 (defgeneric prepare-msg (event)
   (:documentation "Returns EventUpdate ROS msg for event"))
 
@@ -192,21 +198,28 @@
       t)))
 
 (defmethod create-thread ((event physics-event))
+  ;; @TODO: event specific mutex. Is it required??
   "Common function to create thread for some event. Calling it twice for same event would result in error since 2 threads with same name will be created"
   (make-thread :name (concatenate 'string (event-name event) "-thread")
+    (thread-function event))
+)
+
+(defmethod thread-function ((event physics-event))
+  "Function to be called inside a thread. Seperate to facilitate return-from"
     (ros-info EVENT_BULLET_WORLD "Creating thread for ~a event ~%" (event-name event))
     (loop-at-most-every (get-param "loop-rate")
-      (if (run-status event) (single-check event) (return-from create-thread nil)))
+      (if (run-status event) (single-check event) (return-from thread-function nil)))
     (ros-info EVENT_BULLET_WORLD "Exiting thread for ~a event ~%" (event-name event))
-))
+)
 
 (defmethod prepare-msg ((event physics-event))
   "Creates messages to be published with results of constraints, their violations, etc."
   (make-message (get-ros-name "EventUpdate")
-                :header (make-msg "std_msgs/Header"
-                                  :stamp (ros-time))
-                :name (event-name event)
-                :number_of_constraints (length (constraints event))
-                :status (constraints event)
-                :has_occured (status event)))
+                (stamp header) (ros-time);(make-msg "std_msgs/Header"
+;                                  (stamp) (ros-time))
+                (name) (event-name event)
+                (number_of_constraints) (length (constraints event))
+                (status) (constraints event)
+                (has_occured) (status event))
+)
 ; end class physics-event related stuff
