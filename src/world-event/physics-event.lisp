@@ -9,6 +9,9 @@
 (defun get-node-name (inp)
   "Gets the absolute name of inp (inp is relative to the node"
   (concatenate 'string *ros-node-name* "/" inp))
+(defun bool-to-num (inp)
+  "Returns 1 for t and 0 for nil"
+  (if inp 1 0))
 ; end generic stuff
 
 ; start class physics-event related stuff
@@ -228,11 +231,14 @@
 (defmethod prepare-msg ((event physics-event))
   "Creates messages to be published with results of constraints, their violations, etc."
   (make-message (get-ros-name "EventUpdate")
-                (stamp header) (ros-time);(make-msg "std_msgs/Header"
-;                                  (stamp) (ros-time))
-                (name) (event-name event)
-                (number_of_constraints) (length (constraints event))
-                (status) (constraints event)
-                (has_occured) (status event))
+                :header (make-msg "std_msgs/Header"
+                                  :stamp (ros-time)
+                                  :seq (length (occurance-stack event))
+;                                  :frame_id (get-node-name (get-ros-name *current-bullet-world* ))
+                                  )
+                :name (event-name event)
+                :number_of_constraints (length (constraints event))
+                :status (make-array (length (constraints event)) :initial-contents (loop for x in (constraints event) collect (bool-to-num x)))
+                :has_occured (bool-to-num (status event)))
 )
 ; end class physics-event related stuff
