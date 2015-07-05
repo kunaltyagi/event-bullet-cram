@@ -126,8 +126,9 @@
   (append (list (ros-time)) (occurance-stack event))
   (case (response-type event)
     (0 (format t "~a Event occured~%" (event-name event)))
-    (1 (ros-info EVENT_BULLET_WORLD "Publishing message") (prepare-msg event))
-       ;(raise-event-pb (prepare-msg event)))  ; publishing here
+    (1 ;(ros-info EVENT_BULLET_WORLD "Publishing message") (prepare-msg event))
+       (raise-event-pb (prepare-msg event)))  ; should a saved message be published? Makes more sense, but a change of only 4 instructions
+       ;(raise-event-pb (message event)))
     (2 (ros-info EVENT_BULLET_WORLD "Event occured. Polling data updated")) ; do nothing here, it is a polling only feature
     (3 (ros-error EVENT_BULLET_WORLD "Actions not supported"))
     (4 (set-param (event-name event) 1)
@@ -210,7 +211,9 @@
             ; use the constraint_relation here to set the final status
             (if (equal detail-status t) (setf (status event) t)))
       (if (status event)
-        (on-event event))
+        (progn 
+          (setf (message event) (prepare-msg event))
+          (on-event event)))
       t)))
 
 (defmethod create-thread ((event physics-event))

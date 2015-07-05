@@ -102,8 +102,11 @@
   (let ((event (get-event-by-name name)))
     (make-response
                    :header (make-msg "std_msgs/Header"
-                                     :stamp (ros-time))
+                                     :stamp (ros-time)
+                                     :seq (length (occurance-stack event))
+;                                     :frame_id (get-node-name (get-ros-name *current-bullet-world* ))
+                                     )
                    :name (event-name event)
                    :number_of_constraints (length (constraints event))
-                   :status (constraints event)
-                   :has_occured (status event))))
+                   :status (make-array (length (constraints event)) :initial-contents (loop for x in (constraints event) collect (bool-to-num x)))
+                   :has_occured (bool-to-num (status event)))))
