@@ -63,30 +63,34 @@
   (with-fields (event_name constraint_list ros_binding_type is_custom constraint_relation
                 custom_function) msg
     (add-physics-event (make-instance 'physics-event
-                              :event-name event_name
-                              :response-type ros_binding_type
-                              :constraints (coerce constraint_list 'list)
-                              :constraint-relation (coerce constraint_relation 'list)
-                              :source-msg msg
-                              ;; @TODO: right now returns a list, make it return t or nil
-                              :raise-event-on-true
-      (if (= is_custom (get-constant-value 'event_bullet_world-msg:AddPhysicsEvent :TRUE))
-        #'(lambda (event)
-          (with-fields (custom_function) (source-msg event)
-            ;; USE: https://github.com/mabragor/cl-secure-read ???
-            (eval (read-from-string custom_function))))  ; can also save the function to save overhead using:
-;  need to create a custom-function slot in physics-event
-;  (setf (custom-function event) (concatenate 'string "#'(lambda () " custom_function ")" ))
-;  then using
-;  (funcall (custom-function event))
-;  which is better??
-        #'(lambda (event)
-          (loop for item in (constraints event)
-            collect (single-constraint-check item))
-                  t))))  ; t is a HACK for TESTING
-  (let ((event (get-event-by-name event_name)))
-  ;  (ros-info EVENT_BULLET_WORLD "~a Event added, ~a bindings. Running checks now" (event-name event) (response-type event))
-    (create-thread event)))
+                          :event-name event_name
+                          :response-type ros_binding_type
+                          :constraints
+                            (coerce constraint_list 'list)
+                          :constraint-relation
+                            (coerce constraint_relation 'list)
+                          :source-msg msg
+                          :custom-flag is_custom
+                          :custom-function
+                            (eval (let ((*read-eval* nil ))
+                                    (read-from-string
+                                      (concatenate 'string "#'(lambda () " custom_function ")" ))))
+;; @TODO: right now returns a list, make it return t or nil
+                          :raise-event-on-true
+                            (if (= is_custom
+                                   (get-constant-value 'event_bullet_world-msg:AddPhysicsEvent :TRUE))
+                              #'(lambda (event)
+                                (funcall (custom-function event)))
+; OR
+;                                (with-fields (custom_function) (source-msg event)
+;                                  (eval (let ((*read-eval*)) (read-from-string custom_function)))))
+                              #'(lambda (event)
+                                (loop for item in (constraints event)
+                                  collect (single-constraint-check item))
+                                t))))  ; t is a HACK for TESTING
+    (let ((event (get-event-by-name event_name)))
+;      (ros-info EVENT_BULLET_WORLD "~a Event added, ~a bindings. Running checks now" (event-name event) (response-type event))
+      (create-thread event)))
 )
 
 (defun raise-event-pb (msg)

@@ -46,6 +46,7 @@
    ;; @TODO: do what ros-msg actually should do
    (ros-msg
     ; no need currently. Maybe required in a race condition. Not sure
+    ; @TODO: update to (message event) should happen via check-to-raise IMHO
     :initarg
     :message
     :accessor message
@@ -86,6 +87,18 @@
     :initform ()
     :accessor constraint-status-list
     :documentation "status of each constraint")
+   (custom-flag
+    :initarg
+    :custom-flag
+    :initform nil
+    :accessor custom-flag
+    :documentation "Flag is true if custom command is provided to be evaluated")
+   (custom-function
+    :initarg 
+    :custom-function
+    :initform 'raise-event-as-fast-as-possible
+    :accessor custom-function
+    :documentation "Stores the custom function to be called if custom-flag is true")
   )
   (:documentation "contains creation timestamp in event-timestamp, required: occurance time-stamp"))
 
