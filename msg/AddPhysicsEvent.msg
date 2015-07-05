@@ -14,7 +14,9 @@ int32 number_of_constraints
 int32[] constraint_relation  # of length (number_of_constraints-1)
 
 event_bullet_world/PhysicsConstraint[] constraint_list
-# custom function. not implemented yet.
+# custom function. All details of this message is available through variable
+# 'event' of class physics-event in lisp. This should contain only the body of the
+# function, ie. provide only ellipsis in (defun <fn-name> (event) ( ... ))
 string custom_function
 
 int32 NONE      = 0

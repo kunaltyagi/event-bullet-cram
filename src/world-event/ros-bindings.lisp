@@ -74,13 +74,13 @@
                           :custom-function
                             (eval (let ((*read-eval* nil ))
                                     (read-from-string
-                                      (concatenate 'string "#'(lambda () " custom_function ")" ))))
+                                      (concatenate 'string "#'(lambda (event) " custom_function ")" ))))
 ;; @TODO: right now returns a list, make it return t or nil
                           :raise-event-on-true
                             (if (= is_custom
                                    (get-constant-value 'event_bullet_world-msg:AddPhysicsEvent :TRUE))
                               #'(lambda (event)
-                                (funcall (custom-function event)))
+                                (funcall (custom-function event) event))
 ; OR
 ;                                (with-fields (custom_function) (source-msg event)
 ;                                  (eval (let ((*read-eval*)) (read-from-string custom_function)))))
