@@ -1,6 +1,7 @@
 (in-package :event-bullet-world)
 
 ; start generic stuff
+; PS: to view details of objects, use (describe <obj_name>)
 ; can be put into a more basic lisp file
 (defparameter ros-binding-base-name "event_bullet_world")
 (defun get-ros-name (inp)
@@ -84,12 +85,6 @@
     :initform nil
     :accessor status
     :documentation "status of physics event, after the necessary operations")
-   (constraint-status-list
-    :initarg
-    :constraint-status-list
-    :initform ()
-    :accessor constraint-status-list
-    :documentation "status of each constraint")
    (custom-flag
     :initarg
     :custom-flag
