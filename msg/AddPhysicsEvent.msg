@@ -9,9 +9,27 @@ int32 ros_binding_type
 # constraints to be applied under the given name
 int32 is_custom
 # used if is_custom is false. NONE to neglect constraint_b
-# constraint_relation[i] is for constraint_list[i] and constraint_list[i+1]
-int32 number_of_constraints
+int32 number_of_constraints  # required only for C++
+
+## DEPRECIATED
 int32[] constraint_relation  # of length (number_of_constraints-1)
+## END DEPRECIATED
+
+std_msgs/Int32MultiArray boolean_expression
+# It will contain data like:
+# boolean_expression.
+#     layout.dim[0].size = 2
+#     layout.dim[1].size = 4
+#     layout.dim[2].size = 1
+#     data = [2,3,1,2,5,3,2]
+# This translates into SOP of: (BC + ABCE + D)
+#                  and POS of: (B+C)(A+B+C+E)(D)
+# where the no. of elements in a group is denoted by the dim[group_no].size
+# constraint_list = [A, B, C, D, E], ie,
+# A is 1st element, and denoted by 1 in the boolean_expression.data
+
+int32 is_product_of_sums  # if false, it is taken to be sum_of_products
+# Hint: SOP determines which are active, POS determines which should be inactive (crude sense)
 
 event_bullet_world/PhysicsConstraint[] constraint_list
 # custom function. All details of this message is available through variable
