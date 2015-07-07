@@ -2,7 +2,7 @@
 
 ; (defparameter *add-event-msg* (make-fluent :name :new-event) "New event to be checked for")
 ; (defparameter *raise-event-msg* (make-fluent :name :new-event) "New event raised")
-(defun get-constant-value (msg slot)
+(defun get-constant-value (msg slot)  ;; @TODO: convert to macro
   (roslisp-msg-protocol:symbol-code msg slot))
 
 (defparameter *raise-event-pub* nil "Raised event published by this publisher")
@@ -57,11 +57,26 @@
 ;          (if is_relative (- (position source_object) (position target_object)) (position source_object)) ;; or call the fn again with constraint_type as POSITION? which is better?
 ;)))
 
+(defun decode-boolex-data (bool-ex)
+  "Takes an multiarray msg (from ROS) as input, as returns a list suitable for lisp"
+  (with-fields (data layout) bool-ex
+    (with-fields (dim) layout
+      (let* ((expression (coerce data 'list))
+             (dimension (loop for gp in (coerce dim 'list)
+                          collect (with-fields (size) gp size)))
+             (i 0))
+        ;; for every entry in dimension, collect that many from layout
+        (loop for element in dimension collect (loop for i upto (+ i element -1) collect i))
+      ))
+
+  ))
+
 (defun add-physics-event-cb (msg)
   "Callback for adding new events and starting a thread for them "
   (ros-info EVENT_BULLET_WORLD "Adding Physics Event to list")
   (with-fields (event_name constraint_list ros_binding_type is_custom constraint_relation
                 custom_function) msg
+;                custom_function is_product_of_sums boolean_expression) msg
     (add-physics-event (make-instance 'physics-event
                           :event-name event_name
                           :response-type ros_binding_type
@@ -71,6 +86,8 @@
                             (coerce constraint_relation 'list)
                           :source-msg msg
                           :custom-flag is_custom
+;                          :is-POS is_product_of_sums
+;                          :boolean-expression (decode-boolex-data boolean_expression)
                           :custom-function
                             (eval (let ((*read-eval* nil ))
                                     (read-from-string

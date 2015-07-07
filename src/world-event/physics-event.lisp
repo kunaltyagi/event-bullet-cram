@@ -78,7 +78,19 @@
     :constraint-relation
     :initform ()
     :accessor constraint_relation
-    :documentation "boolean relations between the constraints")
+    :documentation "DEPRECIATED: boolean relations between the constraints")
+   (boolean-expression
+    :initarg
+    :boolean-expression
+    :initform ()
+    :accessor boolean-expression
+    :documentation "List of lists with encoded boolean expression of relation between constraints")
+   (is-POS
+    :initarg
+    :is-POS
+    :initform nil
+    :accessor is-POS
+    :documentation "SOP or POS form used for encoding boolean-expression")
    (event-status
     :initarg
     :status
@@ -168,7 +180,7 @@
   (make-instance 'physics-event
                  :event-name name))
 
-(defparameter *physics-event-list* () "All lhysics events created are here")
+(defparameter *physics-event-list* () "All physics events created are here")  ; move onto Hash tables for large no. of events
 (defparameter *physics-read-write-mutex* (make-mutex :name "physics-event-list-mutex") "Mutex with one writer OR infi reader concept")
 
 (defmethod add-physics-event ((event physics-event))

@@ -21,9 +21,11 @@ std_msgs/Int32MultiArray boolean_expression
 #     layout.dim[0].size = 2
 #     layout.dim[1].size = 4
 #     layout.dim[2].size = 1
-#     data = [2,3,1,2,5,3,2]
-# This translates into SOP of: (BC + ABCE + D)
-#                  and POS of: (B+C)(A+B+C+E)(D)
+#     data = [2,3,1,-2,5,3,4]  # negative means negation
+# NOTE: 0 will be treated as false and not ignored
+#
+# This translates into SOP of: (BC + A(~B)CE + D)
+#                  and POS of: (B+C)(A+(~B)+C+E)(D)
 # where the no. of elements in a group is denoted by the dim[group_no].size
 # constraint_list = [A, B, C, D, E], ie,
 # A is 1st element, and denoted by 1 in the boolean_expression.data
