@@ -12,6 +12,7 @@
                geometry_msgs-msg
                event_bullet_world-srv
                event_bullet_world-msg
+               alexandria
                )
   :components
   ((:module "src"

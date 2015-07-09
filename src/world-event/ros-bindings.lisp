@@ -57,6 +57,11 @@
 ;          (if is_relative (- (position source_object) (position target_object)) (position source_object)) ;; or call the fn again with constraint_type as POSITION? which is better?
 ;)))
 
+(defun decoder-helper (input how-many &key start)
+  "Takes a list and returns how-many elements starting from :start"
+  ;; @TODO: replace (nth i input) with (nth (nth i input) (constraint-list event))
+  (loop for i from start to (+ start how-many -1) collect (nth i input)))
+
 (defun decode-boolex-data (bool-ex)
   "Takes an multiarray msg (from ROS) as input, as returns a list suitable for lisp"
   (with-fields (data layout) bool-ex
@@ -64,9 +69,12 @@
       (let* ((expression (coerce data 'list))
              (dimension (loop for gp in (coerce dim 'list)
                           collect (with-fields (size) gp size)))
-             (i 0))
+            )
         ;; for every entry in dimension, collect that many from layout
-        (loop for element in dimension collect (loop for i upto (+ i element -1) collect i))
+        (mapcar (let ((i 0)) #'(lambda (how-many)
+                                 (prog1 (decode-helper expression how-many :start i)
+                                   (incf i how-many))))
+                dimension)
       ))
 
   ))
