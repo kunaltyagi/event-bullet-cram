@@ -15,7 +15,7 @@ int32 number_of_constraints  # required only for C++
 int32[] constraint_relation  # of length (number_of_constraints-1)
 ## END DEPRECIATED
 
-std_msgs/Int32MultiArray boolean_expression
+#std_msgs/Int32MultiArray boolean_expression
 # It will contain data like:
 # boolean_expression.
 #     layout.dim[0].size = 2

@@ -19,6 +19,7 @@
             :components
             ((:file "package")
              (:file "object-event" :depends-on ("world-event" "package"))
+             (:file "helper" :depends-on ("package" "object-event"))
              (:module "world-event" :depends-on ("package")
                       :components
                       (
