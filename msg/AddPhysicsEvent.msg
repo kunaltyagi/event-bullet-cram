@@ -12,7 +12,7 @@ int32 is_custom
 int32 number_of_constraints  # required only for C++
 
 ## DEPRECIATED
-int32[] constraint_relation  # of length (number_of_constraints-1)
+#int32[] constraint_relation  # of length (number_of_constraints-1)
 ## END DEPRECIATED
 
 #std_msgs/Int32MultiArray boolean_expression
