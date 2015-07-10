@@ -234,7 +234,7 @@
   "Function to be called inside a thread. Seperate to facilitate return-from"
     (ros-info EVENT_BULLET_WORLD "Creating thread for ~a event ~%" (event-name event))
     (loop-at-most-every (get-param "loop-rate")
-      (if (run-status event) (single-check event) (return-from thread-function nil)))
+      (if (run-status event) (single-check event) (return)))
     (ros-info EVENT_BULLET_WORLD "Exiting thread for ~a event ~%" (event-name event))
 )
 

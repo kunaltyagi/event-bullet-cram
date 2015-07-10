@@ -12,10 +12,10 @@ int32 is_custom
 int32 number_of_constraints  # required only for C++
 
 ## DEPRECIATED
-#int32[] constraint_relation  # of length (number_of_constraints-1)
+int32[] constraint_relation  # of length (number_of_constraints-1)
 ## END DEPRECIATED
 
-#std_msgs/Int32MultiArray boolean_expression
+std_msgs/Int32MultiArray boolean_expression
 # It will contain data like:
 # boolean_expression.
 #     layout.dim[0].size = 2
@@ -24,8 +24,8 @@ int32 number_of_constraints  # required only for C++
 #     data = [2,3,1,-2,5,3,4]  # negative means negation
 # NOTE: 0 will be treated as false and not ignored
 #
-# This translates into SOP of: (BC + A(~B)CE + D)
-#                  and POS of: (B+C)(A+(~B)+C+E)(D)
+# This translates into SOP of: (BC + A(not B)CE + D)
+#                  and POS of: (B+C)(A+(not B)+C+E)(D)
 # where the no. of elements in a group is denoted by the dim[group_no].size
 # constraint_list = [A, B, C, D, E], ie,
 # A is 1st element, and denoted by 1 in the boolean_expression.data
