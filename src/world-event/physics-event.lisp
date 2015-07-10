@@ -215,8 +215,24 @@
     (setf (run-status event) nil)
     (progn ;(ros-info EVENT_BULLET_WORLD "Checking one single time")
       (let ((detail-status (funcall (raise-event-on-true event) event)))
+         (if (equal t
             ; use the boolean_expression here to set the final status
-            (if (equal detail-status t) (setf (status event) t)))
+            ; (setf final-status
+                (let ((result (loop for group in (boolean-expression event) collect
+                                (loop for element in group collect (nth (- element 1) detail-status)))))
+                  (if (= (is-POS event)
+                         (get-constant-value 'event_bullet_world-msg:AddPhysicsEvent :TRUE))
+                    ; product of sum
+                    (every #'(lambda (bool) (equal t bool))
+                      (loop for group in result
+                        collect (some #'(lambda (num) (= 1 num)) group)))
+                    (some #'(lambda (bool) (equal t bool))
+                      (loop for group in result
+                        collect (every #'(lambda (num) (= 1 num)) group)))))
+            ; )
+             )
+           (setf (status event) t)))
+;            (if (equal final-status t) (setf (status event) t)))
       (if (status event)
         (progn 
           (setf (message event) (prepare-msg event))
