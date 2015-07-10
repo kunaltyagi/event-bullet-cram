@@ -73,12 +73,12 @@
     :initform ()
     :accessor constraints
     :documentation "list of value of constraints")
-   (constraint-relations
-    :initarg
-    :constraint-relation
-    :initform ()
-    :accessor constraint_relation
-    :documentation "DEPRECIATED: boolean relations between the constraints")
+;   (constraint-relations
+;    :initarg
+;    :constraint-relation
+;    :initform ()
+;    :accessor constraint_relation
+;    :documentation "DEPRECIATED: boolean relations between the constraints")
    (boolean-expression
     :initarg
     :boolean-expression
@@ -215,7 +215,7 @@
     (setf (run-status event) nil)
     (progn ;(ros-info EVENT_BULLET_WORLD "Checking one single time")
       (let ((detail-status (funcall (raise-event-on-true event) event)))
-            ; use the constraint_relation here to set the final status
+            ; use the boolean_expression here to set the final status
             (if (equal detail-status t) (setf (status event) t)))
       (if (status event)
         (progn 
