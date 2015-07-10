@@ -11,6 +11,6 @@
                 :data (make-array (length data) :initial-contents data)
                 :layout (make-message "std_msgs/MultiArrayLayout"
                                       :dim (make-array (length size)
-                                                       :initial-contents (mapcar '#(lambda (num)
+                                                       :initial-contents (mapcar #'(lambda (num)
                                                                                      (MultiArrayDimension :size num))
                                                                                  size)))))
