@@ -13,6 +13,9 @@
 (defun bool-to-num (inp)
   "Returns 1 for t and 0 for nil"
   (if inp 1 0))
+(defun num-to-bool (inp)
+  "Returns t for !=0 and nil for =0"
+  (if (= 0 inp) nil t))
 ; end generic stuff
 
 ; start class physics-event related stuff
@@ -209,35 +212,66 @@
 ;; (defun velocity ((event physics-event))
 ;; something using prolog queries just like in cram-projection-demos/src/utilities/objects.lisp
 
+(defun bool-logic-to-constraint (expression constraint-status)
+  "Converts the POS/SOP expression to constraint truth values"
+  (loop for group in expression collect
+    (loop for element in group collect
+      (if (= 0 element)
+          nil
+          (if (< 0 element)
+              (not (nth (- (- element) 1) constraint-status))
+              (nth (- element 1) constraint-status))))))
+
+(defun compute-boolean-expression (expression constraint-status is-POS)
+  "Returns t is the whole boolean-expression evaluates to true, else nil"
+  (let ((result (bool-logic-to-constraint expression constraint-status)))
+    (if (= is-POS
+           (get-constant-value 'event_bullet_world-msg:AddPhysicsEvent :TRUE))
+        ; product of sum
+        (every #'(lambda (bool) (equal t bool))
+          (loop for group in result
+            collect (some #'(lambda (num) (= 1 num)) group)))
+        ; sum of products
+        (some #'(lambda (bool) (equal t bool))
+          (loop for group in result
+            collect (every #'(lambda (num) (= 1 num)) group))))))
+
+(defmethod event-occured ((event physics-event))
+  "Sets the status of the event as true"
+  (setf (status event) t))
+
+(defmethod no-event-occured ((event physics-event))
+  "Sets the status of the event as true"
+  (setf (status event) nil))
+
 (defmethod single-check ((event physics-event))
   "This function will check for occurance of event based on serveral conditions, and return nil if it should not be checked again, t otherwise"
+  ;; @TODO: split into 2 functions: compute and evaluate
   (if (removal-requested event)
-    (setf (run-status event) nil)
-    (progn ;(ros-info EVENT_BULLET_WORLD "Checking one single time")
+    (setf (run-status event) nil)  ; sends nil to stop thread
+    (prog1 t  ; sends t to continue thread
+      ;(ros-info EVENT_BULLET_WORLD "Checking one single time")
+      ;; In this let block, the value of status is set
       (let ((detail-status (funcall (raise-event-on-true event) event)))
-         (if (equal t
-            ; use the boolean_expression here to set the final status
-            ; (setf final-status
-                (let ((result (loop for group in (boolean-expression event) collect
-                                (loop for element in group collect (nth (- element 1) detail-status)))))
-                  (if (= (is-POS event)
-                         (get-constant-value 'event_bullet_world-msg:AddPhysicsEvent :TRUE))
-                    ; product of sum
-                    (every #'(lambda (bool) (equal t bool))
-                      (loop for group in result
-                        collect (some #'(lambda (num) (= 1 num)) group)))
-                    (some #'(lambda (bool) (equal t bool))
-                      (loop for group in result
-                        collect (every #'(lambda (num) (= 1 num)) group)))))
-            ; )
-             )
-           (setf (status event) t)))
-;            (if (equal final-status t) (setf (status event) t)))
+         (if (numberp detail-status)  ; if detail-status is a number, make it bool for the custom case
+             (setf detail-status (num-to-bool detail-status)))
+         (if (= (custom-flag event)
+                (get-constant-value 'event_bullet_world-msg:AddPhysicsEvent :TRUE))
+             ; if custom-function is provided
+             (if detail-status
+                 (event-occured event)
+                 (no-event-occured event))
+             ; if no custom-function is provided, evaulate the POS/SOP of constraints
+             (if (equal t
+                   (compute-boolean-expression
+                          (boolean-expression event) detail-status (is-POS event)))
+                 (event-occured event)
+                 (no-event-occured event))))
+      ;; If the status if t, the event has occured
       (if (status event)
         (progn 
           (setf (message event) (prepare-msg event))
-          (on-event event)))
-      t)))
+          (on-event event))))))
 
 (defmethod create-thread ((event physics-event))
   ;; @TODO: event specific mutex. Is it required??
