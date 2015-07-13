@@ -9,6 +9,7 @@
         #:cram-reasoning
         #:roslisp
         #:cl
+        #:cl-transforms
 ;        #:event_bullet_world-msg
 ;        #:event_bullet_world-srv
         "CL" "SB-THREAD" "SB-EXT")

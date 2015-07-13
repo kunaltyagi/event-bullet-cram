@@ -7,6 +7,7 @@
                cram-environment-representation
                cram-plan-knowledge
                bullet-reasoning-designators
+               bullet-reasoning
                roslisp
                std_msgs-msg
                geometry_msgs-msg

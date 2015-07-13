@@ -3,8 +3,8 @@
 # If any variable (which takes options from the bottom
 # of this message) is out of range, the message will be dropped
 
-# If empty, target_object will be assumed to be the world itself
-string target_object
+# If empty, reference will be assumed to be the world itself
+string reference
 string source_object
 int32 constraint_type
 
@@ -12,6 +12,7 @@ int32 constraint_type
 int32 is_angular
 # Min and max in case of a range.
 # For a particular value val, set min to val-delta, max to val+delta
+# For angular case, assume everything to be in fixed Axis notation
 geometry_msgs/Vector3 min
 geometry_msgs/Vector3 max
 

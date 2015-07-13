@@ -21,41 +21,92 @@
 ;; constraint is violated or not
 ;; @param[in] msg ros-message of type Constraint.msg
 ;; @return (if (constraint violated) t nil)
-(defun single-constraint-check (constraint-msg) "Returns a lambda function which checks for this constraint"
-  (with-fields(target_object source_object constraint_type
-              is_relative is_scalar is_interior is_angular
-              min max) constraint-msg
-    (setf target_object (if (string= target_object "") "world" target_object))
-;    (ros-info EVENT_BULLET_WORLD "Checking constraint")
-;    (let ((msg constraint-msg))
-;      (#'lambda ()
-;                (let ((value (get-current-value msg)))
+(defun single-constraint-check (constraint-msg)
+  "Returns a nil or t based on the constraint being satisfied as per the message"
+  (with-fields (reference is_scalar is_interior min max) constraint-msg
+    (setf reference (if (string= reference "") "world" reference))
+    (if (string= "world" reference)
+        ;; @gaya- "Should this not be there??"
+        (setf reference (write-to-string *current-bullet-world*)))
+    (if (= is_scalar
+           (get-constant-value 'event_bullet_world-msg:PhysicsConstraint :TRUE))
+           t
+           t)
+;                (let ((value (get-current-value constraint-msg)))
 ;                  ;; @TODO: use is_magnitude, overload < and > for use
 ;                  ;(if is_interior (and (> min value) (< max value)) (or (< min value) (> max value)))
 ;                  t
-;                  )))))
+;                  )))
 )
   t)
 
-; @TODO: defun position (obj_name), velocity (obj_name), acceleration (obj_name): from prolog? just a thought from projection_demos
+(defun get-current-value(msg)
+  "Returns the required relative/absolute value based on target and current objects as well as the constraint_type"
+  (with-fields (is_relative is_angular constraint_type source_object reference) msg
+    (let
+      ((function-string
+        (concatenate 'string
+          (if (= is_angular
+                 (get-constant-value 'event_bullet_world-msg:PhysicsConstraint :TRUE))
+              "angular-"
+              "linear-")
+          (cond ((= constraint_type
+                    (get-constant-value 'event_bullet_world-msg:PhysicsConstraint :POSITION))
+                  "position")
+                ((= constraint_type
+                    (get-constant-value 'event_bullet_world-msg:PhysicsConstraint :VELOCITY))
+                  "velocity")
+                ((= constraint_type
+                    (get-constant-value 'event_bullet_world-msg:PhysicsConstraint :ACCELERATION))
+                  "acceleration")
+                (t
+                  (ros-warn EVENT_BULLET_WORLD "Wrong constraint_type provided, falling back to position")
+                  "position")))))
+      (if (= is_relative
+             (get-constant-value 'event_bullet_world-msg:PhysicsConstraint :TRUE))
+          (- (funcall (read-from-string function-string) source_object)
+             (funcall (read-from-string function-string) reference))
+          (funcall (read-from-string function-string) source_object)))))
+
+;; @TODO: move to 3d-vector in geometry of roslisp_common
+(defun v< (vector-a vector-b)
+  "Returns t if (v-norm a) < (v-norm b)"
+  (< (v-norm vector-a) (v-norm vector-b)))
+(defun v> (vector-a vector-b)
+  "Returns t if (v-norm a) > (v-norm b)"
+  (> (v-norm vector-a) (v-norm vector-b)))
+(defun v= (vector-a vector-b &key (scalar nil))
+  "Returns t if (v-norm a) = (v-norm b) if scalar = t"
+  (if scalar
+    (= (v-norm vector-a) (v-norm vector-b))
+    (and (= (x vector-a) (x vector-b))
+         (= (y vector-a) (y vector-b))
+         (= (z vector-a) (z vector-b)))))
+
+(defun linear-position (object-name)
+  "Returns the (x,y,z) position of the object"
+  (origin      (pose (object *current-bullet-world* (read-from-string object-name)))))
+(defun angular-position (object-name)
+  "Returns (x,y,z,w) quaternion of the object"
+  (quaternion->axis-angle
+    (orientation (pose (object *current-bullet-world* (read-from-string object-name))))))
+
+(defun linear-velocity (object-name)
+  "Returns the (x,y,z) position of the object"
+  (linear-velocity (object *current-bullet-world* (read-from-string object-name))))
+(defun angular-velocity (object-name)
+  "Returns (x,y,z,w) quaternion of the object"
+  (quaternion->axis-angle
+    (linear-velocity (object *current-bullet-world* (read-from-string object-name)))))
+(defun linear-acceleration (object-name)
+  "Returns the (x,y,z) position of the object"
+  (linear-acceleration (object *current-bullet-world* (read-from-string object-name))))
+(defun angular-acceleration (object-name)
+  "Returns (x,y,z,w) quaternion of the object"
+  (quaternion->axis-angle
+    (linear-acceleration (object *current-bullet-world* (read-from-string object-name)))))
 
 ;; Slight renaming required. Target object means relative wrt the target object, not wrt the source object
-
-(defun get-current-value(msg) "Returns the required relative/absolute value based on target and current objects as well as the constraint_type"
-  t)
-;  (cond ((= constraint_type POSITION)
-;          (if is_relative (- (position source_object) (position target_object)) (position source_object))
-;        )
-;        ((= constraint_type VELOCITY)
-;          (if is_relative (- (velocity source_object) (velocity target_object)) (velocity source_object))
-;        )
-;        ((= constraint_type ACCELERATION)
-;          (if is_relative (- (acceleration source_object) (acceleration target_object)) (acceleration source_object))
-;        )
-;        (t
-;          (ros-warn EVENT_BULLET_WORLD "Wrong constraint_type provided, falling back to position")
-;          (if is_relative (- (position source_object) (position target_object)) (position source_object)) ;; or call the fn again with constraint_type as POSITION? which is better?
-;)))
 
 (defun decoder-helper (input how-many &key start)
   "Takes a list and returns how-many elements starting from :start"
@@ -74,9 +125,7 @@
         (mapcar (let ((i 0)) #'(lambda (how-many)
                                  (prog1 (decoder-helper expression how-many :start i)
                                    (incf i how-many))))
-                dimension)
-      ))
-))
+                dimension)))))
 
 (defun add-physics-event-cb (msg)
   "Callback for adding new events and starting a thread for them "
@@ -96,7 +145,6 @@
                             (eval (let ((*read-eval* nil ))
                                     (read-from-string
                                       (concatenate 'string "#'(lambda (event) " custom_function ")" ))))
-;; @TODO: right now returns a list, make it return t or nil
                           :raise-event-on-true
                             (if (= is_custom
                                    (get-constant-value 'event_bullet_world-msg:AddPhysicsEvent :TRUE))
@@ -106,9 +154,10 @@
 ;                                (with-fields (custom_function) (source-msg event)
 ;                                  (eval (let ((*read-eval*)) (read-from-string custom_function)))))
                               #'(lambda (event)
-                                (loop for item in (constraints event)
-                                  collect (single-constraint-check item))
-                                t))))  ; t is a HACK for TESTING
+                                (progn  ; After testing is done, change progn to prog1
+                                  (loop for item in (constraints event)
+                                    collect (single-constraint-check item))
+                                  '(nil nil nil t))))))  ; t is a HACK for TESTING
     (let ((event (get-event-by-name event_name)))
 ;      (ros-info EVENT_BULLET_WORLD "~a Event added, ~a bindings. Running checks now" (event-name event) (response-type event))
       (create-thread event)))
