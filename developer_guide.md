@@ -5,14 +5,20 @@
 * **event-bullet-world.asd** file for building
 * **CMakeLists.txt** is very basic and might need to be changed, especially if one wishes to create binaries by running ```roscd event_bullet_world; cd ../..; catkin_make --pkg event_bullet_world```
 * **README.md** contains basic information
-* **reasoning.md ** (to be added) contains most of my thought process and reasoning while developing this package
+* **reasoning.md** (to be added) contains most of my thought process and reasoning while developing this package
 * **developer_guide.md**: This file itself
+ 
 ### msg
 Contains 3  messages:
 * **AddPhysicsEvent**: Used to add an event by publishing on the topic "[node_name]/physics/add_event"
-* **EventUpdate**: Updates for all events are of this type, and can be accessed on the topic [node_name]/event_update
+* **EventUpdate**: Updates for all events are of this type, and can be accessed on the topic "[node_name]/event_update"
 * **PhysicsConstraint**: This is used to build the AddPhysicsEvent message
+
 ### srv
+Contains 1 service:
+* **EventStatus**: Sends the latest event status in an EventUpdate message for the provided event name. This functionality is provided for applications which require a polling method of updates and is accessible at "[node_name]/event_status"
+
+### src
 *__TODO__: A lot of code is repeated and not properly written because of my inexperience with CLOS objects*
 * **EventStatus**: This service provides a way for polling based algorithms to work. The service is accessed by name [node_name]/event_status
 * **package.lisp** is a standard lisp file which make it easier to use a lot of functions from cram and roslisp namespaces
